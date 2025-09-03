@@ -6,41 +6,34 @@
 <title>Preberací protokol – komisionálny predaj | Puella</title>
 <style>
   @page { size: A4; margin: 1.2cm; }
-  :root {
-    --pink: #e7318c; --text:#1f2937; --muted:#6b7280; --border:#e5e7eb;
-  }
+  :root { --pink:#e7318c; --text:#1f2937; --muted:#6b7280; --border:#e5e7eb; --bg:#fafafa; }
   *{box-sizing:border-box}
-  body{font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,Arial,sans-serif; color:var(--text);}
-  .wrap{max-width:820px;margin:0 auto;border:1px solid var(--border);border-radius:16px;overflow:hidden;box-shadow:0 8px 28px rgba(0,0,0,.06)}
-  header{display:flex;align-items:center;gap:16px;padding:18px 22px;background:linear-gradient(180deg,rgba(231,49,140,.08),rgba(231,49,140,.02));border-bottom:1px solid var(--border)}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,Arial,sans-serif;color:var(--text);background:#fff;}
+  .wrap{max-width:920px;margin:0 auto;border:1px solid var(--border);border-radius:16px;overflow:hidden;box-shadow:0 8px 28px rgba(0,0,0,.06)}
+header{display:flex;align-items:center;gap:16px;padding:18px 22px;background:linear-gradient(180deg,rgba(231,49,140,.08),rgba(231,49,140,.02));border-bottom:1px solid var(--border)}
   .logo{width:160px;height:auto}
   .meta{margin-left:auto;text-align:right;font-size:12px;color:var(--muted)}
   h1{font-size:26px;margin:20px 22px 8px;color:var(--pink)}
   .section{padding:10px 22px 22px}
-  .card{border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin:12px 0}
+  .card{border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin:12px 0;background:#fff}
   .label{font-weight:700;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.08em}
   .grid{display:grid;grid-template-columns:1fr 1fr;gap:12px 16px;margin-top:8px}
-  .field{border:1px dashed var(--border);border-radius:10px;padding:10px 12px;min-height:38px}
+  .field{border:1px dashed var(--border);border-radius:10px;padding:10px 12px;min-height:38px;background:#fff}
+  .inline{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0}
+  input, textarea{padding:8px 10px;border:1px solid var(--border);border-radius:8px;font:inherit}
+  input[type="number"]{width:110px}
   table{width:100%;border-collapse:collapse;margin-top:10px;font-size:14px}
-  thead th{background:var(--pink);color:#fff;text-align:left;padding:10px}
+  thead th{background:var(--pink);color:#fff;text-align:left;padding:10px;position:sticky;top:0}
   tbody td, tfoot td{border-bottom:1px solid var(--border);padding:10px;vertical-align:top}
-  tbody tr:nth-child(even) td{background:#fafafa}
-  input[type="number"]{width:100px;padding:6px 8px;border:1px solid var(--border);border-radius:8px}
+  tbody tr:nth-child(even) td{background:var(--bg)}
   .right{text-align:right}
   .note{font-size:12px;color:var(--muted);margin-top:6px}
   .sig-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:24px}
-  .sig{border-top:2px solid var(--border);padding-top:6px;text-align:center;font-size:13px}
-  .inline{display:flex;gap:8px;flex-wrap:wrap;margin:6px 0}
+  .sig{border-top:2px solid var(--border);min-height:80px;padding-top:10px;text-align:center;font-size:13px}
   .badge{display:inline-block;background:var(--pink);color:#fff;padding:2px 8px;border-radius:999px;font-size:12px;margin-left:6px}
+  .btn{padding:10px 14px;border-radius:10px;border:0;background:var(--pink);color:#fff;font-weight:700;cursor:pointer}
   .print-hint{text-align:center;font-size:12px;color:var(--muted);padding:6px 0 12px}
-.sig {
-  border-top: 2px solid var(--border);
-  min-height: 80px;    /* výška bloku pre priestor */
-  padding-top: 10px;   /* malý odstup textu od čiary */
-  text-align: center;
-  font-size: 13px;
-}
-
+  @media print{ .wrap{box-shadow:none;border:0} .btn,.print-hint{display:none!important} input,textarea{border:0} header{background:none} }
 </style>
 </head>
 <body>
@@ -59,26 +52,62 @@
 
   <div class="section">
     <div class="inline">
-      <div>Číslo protokolu: <input type="text" style="border:1px solid var(--border);border-radius:8px;padding:6px 8px;width:180px"></div>
-      <div>Miesto prevzatia: <input type="text" style="border:1px solid var(--border);border-radius:8px;padding:6px 8px;width:260px"></div>
+      <div>Číslo protokolu: <input id="protNum" type="text" style="width:200px"></div>
+      <div>Miesto prevzatia: <input id="place" type="text" style="width:280px"></div>
     </div>
 
+    <!-- Komitent -->
     <div class="card">
       <div class="label">Komitent (dodávateľ)</div>
       <div class="grid">
-        <div class="field"><strong>PUELLAvone s. r. o.</strong><br>Rovníková 1457/7, 040 12 Košice – Nad jazerom<br>IČO: 53 991 893 &nbsp;|&nbsp; DIČ: 2121542665 &nbsp;|&nbsp; IČ DPH: SK2121542665</div>
-        <div class="field">Korešpondenčná adresa: Alvinczyho 28, 040 01 Košice<br>OR: MS Košice, oddiel Sro, vložka 52158/V<br>Štatutárny orgán: Martin Švenk, konateľ</div>
+        <div class="field">
+          <strong>PUELLAvone s. r. o.</strong><br>
+          Rovníková 1457/7, 040 12 Košice – Nad jazerom
+        </div>
+        <div class="field">
+          Korešpondenčná adresa: Alvinczyho 28, 040 01 Košice<br>
+          OR: MS Košice, oddiel Sro, vložka 52158/V<br>
+          Štatutárny orgán: Martin Švenk, konateľ
+        </div>
+      </div>
+      <div class="grid" style="margin-top:12px">
+        <div class="field">IČO: 53 991 893</div>
+        <div class="field">DIČ: 2121542665</div>
+        <div class="field">IČ DPH: SK2121542665</div>
+        <div class="field"></div>
       </div>
     </div>
 
+    <!-- Komisionár -->
     <div class="card">
       <div class="label">Komisionár (odberateľ)</div>
       <div class="grid">
-        <div class="field">Názov / Meno:<br>IČO / DIČ / IČ DPH:<br>Sídlo / Adresa:</div>
-        <div class="field">Zastúpený:<br>Kontakt (tel./e‑mail):<br>Miesto predaja:</div>
+        <div class="field">
+          <label class="label" style="text-transform:none">Názov / Meno</label>
+          <input id="kom_nazov" type="text" style="width:100%">
+          <label class="label" style="text-transform:none;margin-top:8px;display:block">IČO</label>
+          <input id="kom_ico" type="text" style="width:100%">
+          <label class="label" style="text-transform:none;margin-top:8px;display:block">DIČ</label>
+          <input id="kom_dic" type="text" style="width:100%">
+          <label class="label" style="text-transform:none;margin-top:8px;display:block">IČ DPH</label>
+          <input id="kom_icdph" type="text" style="width:100%">
+          <label class="label" style="text-transform:none;margin-top:8px;display:block">Sídlo / Adresa</label>
+          <input id="kom_adresa" type="text" style="width:100%">
+        </div>
+        <div class="field">
+          <label class="label" style="text-transform:none">Zastúpený</label>
+          <input id="kom_zastupeny" type="text" style="width:100%">
+          <label class="label" style="text-transform:none;margin-top:8px;display:block">Tel.</label>
+          <input id="kom_tel" type="text" style="width:100%">
+          <label class="label" style="text-transform:none;margin-top:8px;display:block">E-mail</label>
+          <input id="kom_email" type="text" style="width:100%">
+          <label class="label" style="text-transform:none;margin-top:8px;display:block">Miesto predaja</label>
+          <input id="kom_miesto" type="text" style="width:100%">
+        </div>
       </div>
     </div>
 
+    <!-- Predmet prevzatia -->
     <div class="card">
       <div class="label">Článok I – Predmet prevzatia</div>
       <p>Odovzdávajúci odovzdáva a preberajúci preberá hnuteľné veci podľa ďalej uvedenej špecifikácie (ďalej len „predmet prevzatia“). Tovar zostáva vo vlastníctve dodávateľa až do úplnej úhrady ceny odberateľom.</p>
@@ -86,55 +115,216 @@
       <table id="tbl">
         <thead>
           <tr>
-            <th>Produkt</th>
-            <th>Počet ks</th>
-            <th class="right">Nákupná cena (bez DPH)</th>
-            <th class="right">Celkom (bez DPH)</th>
+            <th style="width:36%">Produkt</th>
+            <th style="width:24%">Poznámka</th>
+            <th style="width:12%">Počet ks</th>
+            <th class="right" style="width:14%">Nákupná cena (bez DPH)</th>
+            <th class="right" style="width:14%">Celkom (bez DPH)</th>
           </tr>
         </thead>
         <tbody>
-          <tr data-price="2.48">
-            <td>Skúšobný set Puella parfumov na pranie</td>
-            <td><input type="number" min="0" value="0"></td>
-            <td class="right">2,48&nbsp;€</td>
-            <td class="right" data-total>0,00&nbsp;€</td>
+          <!-- Parfumy na pranie -->
+          <tr data-price="1.62">
+            <td>Puella parfumov na pranie – Skúšobný set (6 ks z každej vône)</td>
+            <td><input class="p-note" type="text" style="width:100%"></td>
+            <td><input type="number" min="0" step="1"></td>
+            <td class="right">1,62&nbsp;€</td><td class="right" data-total>0,00&nbsp;€</td>
           </tr>
           <tr data-price="4.47">
             <td>Puella parfum na pranie 50 ml</td>
-            <td><input type="number" min="0" value="0"></td>
-            <td class="right">4,47&nbsp;€</td>
-            <td class="right" data-total>0,00&nbsp;€</td>
+            <td><input class="p-note" type="text" style="width:100%"></td>
+            <td><input type="number" min="0" step="1"></td>
+            <td class="right">4,47&nbsp;€</td><td class="right" data-total>0,00&nbsp;€</td>
           </tr>
           <tr data-price="13.68">
             <td>Puella parfum na pranie 250 ml</td>
-            <td><input type="number" min="0" value="0"></td>
-            <td class="right">13,68&nbsp;€</td>
-            <td class="right" data-total>0,00&nbsp;€</td>
+            <td><input class="p-note" type="text" style="width:100%"></td>
+            <td><input type="number" min="0" step="1"></td>
+            <td class="right">13,68&nbsp;€</td><td class="right" data-total>0,00&nbsp;€</td>
           </tr>
-          <tr data-price="19.90" id="row500">
-            <td>Puella parfum na pranie 500 ml + prací gél 1000 ml</td>
-            <td><input type="number" min="0" value="0" id="qty500"></td>
-            <td class="right">19,90&nbsp;€</td>
-            <td class="right" data-total>0,00&nbsp;€</td>
-         
+          <tr data-price="19.90">
+            <td>Puella parfum na pranie 500 ml <span class="badge">darček: Prací gél 1000 ml</span></td>
+            <td><input class="p-note" type="text" style="width:100%"></td>
+            <td><input id="qty500" type="number" min="0" step="1"></td>
+            <td class="right">19,90&nbsp;€</td><td class="right" data-total>0,00&nbsp;€</td>
+          </tr>
+          <tr data-price="0">
+            <td>Prací gél 1000 ml – DARČEK k 500 ml parfumu</td>
+            <td><input class="p-note" type="text" style="width:100%" readonly></td>
+            <td><input id="qtyBonus" type="number" min="0" step="1" readonly></td>
+            <td class="right">0,00&nbsp;€</td><td class="right" data-total>0,00&nbsp;€</td>
+          </tr>
+
+          <!-- Darčekové balenia vzoriek -->
+          <tr data-price="4.29">
+            <td>Darčekové balenie Puella vzoriek – 12 ks</td>
+            <td><input class="p-note" type="text" style="width:100%"></td>
+            <td><input type="number" min="0" step="1"></td>
+            <td class="right">4,29&nbsp;€</td><td class="right" data-total>0,00&nbsp;€</td>
+          </tr>
+          <tr data-price="6.39">
+            <td>Darčekové balenie Puella vzoriek – 18 ks</td>
+            <td><input class="p-note" type="text" style="width:100%"></td>
+            <td><input type="number" min="0" step="1"></td>
+            <td class="right">6,39&nbsp;€</td><td class="right" data-total>0,00&nbsp;€</td>
+          </tr>
+
+          <!-- Pracie gély -->
+          <tr data-price="0.63">
+            <td>Prací gél – jednorazová vzorka</td>
+            <td><input class="p-note" type="text" style="width:100%"></td>
+            <td><input type="number" min="0" step="1"></td>
+            <td class="right">0,63&nbsp;€</td><td class="right" data-total>0,00&nbsp;€</td>
+          </tr>
+          <tr data-price="4.75">
+            <td>Prací gél 250 ml (univerzálny/čierna/biela)</td>
+            <td><input class="p-note" type="text" style="width:100%"></td>
+            <td><input type="number" min="0" step="1"></td>
+            <td class="right">4,75&nbsp;€</td><td class="right" data-total>0,00&nbsp;€</td>
+          </tr>
+          <tr data-price="7.31">
+            <td>Prací gél 500 ml (univerzálny/čierna/biela)</td>
+            <td><input class="p-note" type="text" style="width:100%"></td>
+            <td><input type="number" min="0" step="1"></td>
+            <td class="right">7,31&nbsp;€</td><td class="right" data-total>0,00&nbsp;€</td>
+          </tr>
+          <tr data-price="11.70">
+            <td>Prací gél 1000 ml (univerzálny/čierna/biela)</td>
+            <td><input class="p-note" type="text" style="width:100%"></td>
+            <td><input type="number" min="0" step="1"></td>
+            <td class="right">11,70&nbsp;€</td><td class="right" data-total>0,00&nbsp;€</td>
+          </tr>
+
+          <!-- Pásiky na pranie -->
+          <tr data-price="0.63">
+            <td>Pásiky na pranie – vzorka</td>
+            <td><input class="p-note" type="text" style="width:100%"></td>
+            <td><input type="number" min="0" step="1"></td>
+            <td class="right">0,63&nbsp;€</td><td class="right" data-total>0,00&nbsp;€</td>
+          </tr>
+          <tr data-price="2.84">
+            <td>Pásiky na pranie – 10 ks</td>
+            <td><input class="p-note" type="text" style="width:100%"></td>
+            <td><input type="number" min="0" step="1"></td>
+            <td class="right">2,84&nbsp;€</td><td class="right" data-total>0,00&nbsp;€</td>
+          </tr>
+          <tr data-price="8.84">
+            <td>Pásky na pranie – 50 ks</td>
+            <td><input class="p-note" type="text" style="width:100%"></td>
+            <td><input type="number" min="0" step="1"></td>
+            <td class="right">8,84&nbsp;€</td><td class="right" data-total>0,00&nbsp;€</td>
+          </tr>
+          <tr data-price="13.21">
+            <td>Pásiky na pranie – 100 ks</td>
+            <td><input class="p-note" type="text" style="width:100%"></td>
+            <td><input type="number" min="0" step="1"></td>
+            <td class="right">13,21&nbsp;€</td><td class="right" data-total>0,00&nbsp;€</td>
+          </tr>
+
+          <!-- Čističe -->
+          <tr data-price="3.69">
+            <td>Univerzálny čistič 250 ml (Novinka)</td>
+            <td><input class="p-note" type="text" style="width:100%"></td>
+            <td><input type="number" min="0" step="1"></td>
+            <td class="right">3,69&nbsp;€</td><td class="right" data-total>0,00&nbsp;€</td>
+          </tr>
+          <tr data-price="5.28">
+            <td>Univerzálny čistič 500 ml (Novinka)</td>
+            <td><input class="p-note" type="text" style="width:100%"></td>
+            <td><input type="number" min="0" step="1"></td>
+            <td class="right">5,28&nbsp;€</td><td class="right" data-total>0,00&nbsp;€</td>
+          </tr>
+
+          <!-- Home & décor -->
+          <tr data-price="8.27">
+            <td>Vonná sviečka 230 g</td>
+            <td><input class="p-note" type="text" style="width:100%"></td>
+            <td><input type="number" min="0" step="1"></td>
+            <td class="right">8,27&nbsp;€</td><td class="right" data-total>0,00&nbsp;€</td>
+          </tr>
+          <tr data-price="10.95">
+            <td>Vonný difuzér s tyčinkami 100 ml</td>
+            <td><input class="p-note" type="text" style="width:100%"></td>
+            <td><input type="number" min="0" step="1"></td>
+            <td class="right">10,95&nbsp;€</td><td class="right" data-total>0,00&nbsp;€</td>
+          </tr>
+          <tr data-price="9.51">
+            <td>Náplň pre vonný difuzér s tyčinkami 100 ml</td>
+            <td><input class="p-note" type="text" style="width:100%"></td>
+            <td><input type="number" min="0" step="1"></td>
+            <td class="right">9,51&nbsp;€</td><td class="right" data-total>0,00&nbsp;€</td>
+          </tr>
+          <tr data-price="3.43">
+            <td>Voňavá visačka</td>
+            <td><input class="p-note" type="text" style="width:100%"></td>
+            <td><input type="number" min="0" step="1"></td>
+            <td class="right">3,43&nbsp;€</td><td class="right" data-total>0,00&nbsp;€</td>
+          </tr>
+          <tr data-price="2.70">
+            <td>Voňavá karta</td>
+            <td><input class="p-note" type="text" style="width:100%"></td>
+            <td><input type="number" min="0" step="1"></td>
+            <td class="right">2,70&nbsp;€</td><td class="right" data-total>0,00&nbsp;€</td>
+          </tr>
+          <tr data-price="7.35">
+            <td>Voňavá karta – trojbalenie</td>
+            <td><input class="p-note" type="text" style="width:100%"></td>
+            <td><input type="number" min="0" step="1"></td>
+            <td class="right">7,35&nbsp;€</td><td class="right" data-total>0,00&nbsp;€</td>
+          </tr>
+
+          <!-- Telové / bytové vône -->
+          <tr data-price="12.07">
+            <td>Parfum 50 ml</td>
+            <td><input class="p-note" type="text" style="width:100%"></td>
+            <td><input type="number" min="0" step="1"></td>
+            <td class="right">12,07&nbsp;€</td><td class="right" data-total>0,00&nbsp;€</td>
+          </tr>
+          <tr data-price="6.34">
+            <td>Parfum 10 ml (roll-on)</td>
+            <td><input class="p-note" type="text" style="width:100%"></td>
+            <td><input type="number" min="0" step="1"></td>
+            <td class="right">6,34&nbsp;€</td><td class="right" data-total>0,00&nbsp;€</td>
+          </tr>
+          <tr data-price="9.77">
+            <td>Vôňa do bytu 50 ml</td>
+            <td><input class="p-note" type="text" style="width:100%"></td>
+            <td><input type="number" min="0" step="1"></td>
+            <td class="right">9,77&nbsp;€</td><td class="right" data-total>0,00&nbsp;€</td>
+          </tr>
+
+          <!-- Pena do kúpeľa -->
+          <tr data-price="0.48">
+            <td>Pena do kúpeľa – vzorka 10 ml</td>
+            <td><input class="p-note" type="text" style="width:100%"></td>
+            <td><input type="number" min="0" step="1"></td>
+            <td class="right">0,48&nbsp;€</td><td class="right" data-total>0,00&nbsp;€</td>
+          </tr>
+          <tr data-price="6.50">
+            <td>Pena do kúpeľa 250 ml</td>
+            <td><input class="p-note" type="text" style="width:100%"></td>
+            <td><input type="number" min="0" step="1"></td>
+            <td class="right">6,50&nbsp;€</td><td class="right" data-total>0,00&nbsp;€</td>
+          </tr>
+
+          <!-- Doplnky -->
+          <tr data-price="5.28">
+            <td>Multifunkčné párovače ponožiek – 10 ks</td>
+            <td><input class="p-note" type="text" style="width:100%"></td>
+            <td><input type="number" min="0" step="1"></td>
+            <td class="right">5,28&nbsp;€</td><td class="right" data-total>0,00&nbsp;€</td>
+          </tr>
         </tbody>
         <tfoot>
-          <tr>
-            <td colspan="3" class="right"><strong>Spolu bez DPH</strong></td>
-            <td class="right" id="sum_wo">0,00&nbsp;€</td>
-          </tr>
-          <tr>
-            <td colspan="3" class="right">DPH 20 %</td>
-            <td class="right" id="sum_vat">0,00&nbsp;€</td>
-          </tr>
-          <tr>
-            <td colspan="3" class="right"><strong>Spolu s DPH</strong></td>
-            <td class="right" id="sum_w">0,00&nbsp;€</td>
-          </tr>
+          <tr><td colspan="4" class="right"><strong>Spolu bez DPH</strong></td><td class="right" id="sum_wo">0,00&nbsp;€</td></tr>
+          <tr><td colspan="4" class="right">DPH 20&nbsp;%</td><td class="right" id="sum_vat">0,00&nbsp;€</td></tr>
+          <tr><td colspan="4" class="right"><strong>Spolu s DPH</strong></td><td class="right" id="sum_w">0,00&nbsp;€</td></tr>
         </tfoot>
-     </table>
-         </div>
+      </table>
+      <div class="note">Pozn.: Riadok „Prací gél 1000 ml – DARČEK“ sa automaticky dorovnáva k množstvu 500&nbsp;ml parfumu (cena 0&nbsp;€).</div>
+    </div>
 
+    <!-- Odovzdanie a stav -->
     <div class="card">
       <div class="label">Článok II – Odovzdanie a stav</div>
       <ol style="margin:8px 0 0 18px">
@@ -143,6 +333,7 @@
       </ol>
     </div>
 
+    <!-- Ustanovenia -->
     <div class="card">
       <div class="label">Článok III – Doplňujúce ustanovenia</div>
       <ol style="margin:8px 0 0 18px">
@@ -155,34 +346,117 @@
         <div class="sig">Za preberajúceho – podpis a pečiatka</div>
       </div>
     </div>
-    <div class="print-hint">Tip: Vyplňte počty kusov, potom použite <strong>Súbor → Tlačiť</strong> a uložte ako PDF.</div>
+
+    <!-- Odoslanie objednávky cez Formspree -->
+    <div class="card">
+      <div class="label">Odoslanie objednávky e-mailom</div>
+      <p class="note">Formulár odošle súhrn vyplnených položiek (vrátane poznámok) na zadaný e-mail cez Formspree.</p>
+      <form id="orderForm" action="https://formspree.io/f/myzdbgol" method="POST" style="display:grid;gap:10px;grid-template-columns:1fr 240px;align-items:end">
+        <div>
+          <label class="label" for="orderEmail" style="text-transform:none;color:var(--text)">E-mail na potvrdenie</label>
+          <input id="orderEmail" name="email" type="text" style="width:100%">
+        </div>
+        <button type="submit" class="btn">Odoslať objednávku e-mailom</button>
+
+        <!-- skryté polia pre obsah správy a predmet -->
+        <textarea name="message" id="orderMessage" hidden></textarea>
+        <input type="hidden" name="_subject" id="orderSubject" value="Objednávka – komisionálny predaj (Puella)">
+      </form>
+      <div class="inline" style="justify-content:flex-end;margin-top:8px">
+        <button type="button" class="btn" onclick="window.print()">Tlačiť / Uložiť PDF</button>
+      </div>
+    </div>
+
+    <div class="print-hint">Vyplňte počty kusov a poznámky, potom odošlite e-mailom alebo použite <strong>Súbor → Tlačiť</strong>.</div>
   </div>
 </div>
 
 <script>
-function fmt(n){ return n.toLocaleString('sk-SK', {minimumFractionDigits:2, maximumFractionDigits:2}) + '\u00A0€'; }
-function recalc(){ 
-  // bonus sync with 500 ml
+function fmt(n){ return n.toLocaleString('sk-SK',{minimumFractionDigits:2,maximumFractionDigits:2}) + '\u00A0€'; }
+
+// prepočet súm + dorovnanie darčeka
+function recalc(){
   const q500 = document.getElementById('qty500');
   const qBonus = document.getElementById('qtyBonus');
-  qBonus.value = qBonus.value || 0;
-  // ak je bonus menší než 500 ml, automaticky ho dorovnaj (možno potom ručne upraviť)
-  if (Number(qBonus.value) < Number(q500.value)) qBonus.value = q500.value;
+  if (q500 && qBonus) { qBonus.value = q500.value; } // ak je prázdne, zostane prázdne
+
   let sum = 0;
-  document.querySelectorAll('#tbl tbody tr').forEach(tr => {
-    const price = parseFloat(tr.dataset.price);
-    const qty = Number(tr.querySelector('input').value || 0);
+  document.querySelectorAll('#tbl tbody tr').forEach(tr=>{
+    const price = parseFloat(tr.dataset.price || '0');
+    const raw = (tr.querySelector('input[type=number]')?.value || '').trim();
+    const qty = raw === '' ? 0 : Number(raw);
     const total = price * qty;
-    tr.querySelector('[data-total]').textContent = fmt(total);
+    const cell = tr.querySelector('[data-total]');
+    if(cell) cell.textContent = fmt(total);
     sum += total;
   });
-  document.getElementById('sum_wo').textContent = fmt(sum);
   const vat = sum * 0.20;
+  document.getElementById('sum_wo').textContent  = fmt(sum);
   document.getElementById('sum_vat').textContent = fmt(vat);
-  document.getElementById('sum_w').textContent = fmt(sum + vat);
+  document.getElementById('sum_w').textContent   = fmt(sum + vat);
 }
-document.querySelectorAll('input[type=number]').forEach(i => i.addEventListener('input', recalc));
+document.querySelectorAll('#tbl input[type=number]').forEach(i=>i.addEventListener('input', recalc));
 recalc();
+
+function getKomisionarText(){
+  const v = id => (document.getElementById(id)?.value || '').trim();
+  const parts = [];
+  if(v('kom_nazov'))    parts.push(`Názov/Meno: ${v('kom_nazov')}`);
+  if(v('kom_ico'))      parts.push(`IČO: ${v('kom_ico')}`);
+  if(v('kom_dic'))      parts.push(`DIČ: ${v('kom_dic')}`);
+  if(v('kom_icdph'))    parts.push(`IČ DPH: ${v('kom_icdph')}`);
+  if(v('kom_adresa'))   parts.push(`Adresa: ${v('kom_adresa')}`);
+  if(v('kom_zastupeny'))parts.push(`Zastúpený: ${v('kom_zastupeny')}`);
+  if(v('kom_tel'))      parts.push(`Tel.: ${v('kom_tel')}`);
+  if(v('kom_email'))    parts.push(`E-mail: ${v('kom_email')}`);
+  if(v('kom_miesto'))   parts.push(`Miesto predaja: ${v('kom_miesto')}`);
+  return parts.join(' | ');
+}
+
+// Formspree: priprav „message“ pred submitom
+document.getElementById('orderForm').addEventListener('submit', function(e){
+  const rows = [...document.querySelectorAll('#tbl tbody tr')];
+  const items = rows.map(tr=>{
+    const name = tr.children[0].innerText.trim();
+    const note = (tr.querySelector('.p-note')?.value || '').trim();
+    const raw = (tr.querySelector('input[type=number]')?.value || '').trim();
+    const qty = raw === '' ? 0 : Number(raw);
+    const price = parseFloat(tr.dataset.price || '0');
+    if(!qty) return null;
+    const noteStr = note ? ` | pozn.: ${note}` : '';
+    return `- ${name}${noteStr} | ks: ${qty} | cena/ks: ${fmt(price)} | spolu: ${fmt(price*qty)}`;
+  }).filter(Boolean);
+
+  if(items.length === 0){
+    e.preventDefault();
+    alert('Najprv vyplňte aspoň jednu položku (Počet ks > 0).');
+    return;
+  }
+
+  const sumWO = document.getElementById('sum_wo')?.innerText || '';
+  const sumVAT = document.getElementById('sum_vat')?.innerText || '';
+  const sumW  = document.getElementById('sum_w')?.innerText || '';
+  const hdrDate = document.getElementById('hdrDate')?.value || '';
+  const protNum = document.getElementById('protNum')?.value || '';
+  const place   = document.getElementById('place')?.value || '';
+  const komisionar = getKomisionarText();
+
+  const lines = [];
+  lines.push('OBJEDNÁVKA – KOMISIONÁLNY PREDAJ');
+  lines.push(`Dátum: ${hdrDate || '(nevyplnené)'} | Číslo protokolu: ${protNum || '(nevyplnené)'} | Miesto prevzatia: ${place || '(nevyplnené)'}`);
+  if(komisionar) lines.push(`Komisionár: ${komisionar}`);
+  lines.push('');
+  lines.push('Položky:');
+  lines.push(items.join('\n'));
+  lines.push('');
+  lines.push(`Spolu bez DPH: ${sumWO}`);
+  lines.push(`DPH 20%: ${sumVAT}`);
+  lines.push(`Spolu s DPH: ${sumW}`);
+  lines.push('');
+  lines.push('Odoslané z preberacieho protokolu Puella.');
+
+  document.getElementById('orderMessage').value = lines.join('\n');
+});
 </script>
 </body>
 </html>
