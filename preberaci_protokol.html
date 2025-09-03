@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="sk">
+<head>
+<meta charset="utf-8">
+<title>Preberací protokol – komisionálny predaj | Puella (PRINT)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+  @page { size: A4; margin: 1.2cm; }
+  :root { --pink:#e7318c; --text:#1f2937; --muted:#6b7280; --border:#e5e7eb; --bg:#fafafa; }
+  *{ box-sizing:border-box }
+  body{ font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,Arial,sans-serif; color:var(--text); background:#fff; }
+  .wrap{ max-width:920px; margin:0 auto; border:1px solid var(--border); border-radius:16px; overflow:hidden; }
+  header{ display:flex; align-items:center; gap:16px; padding:18px 22px; background:linear-gradient(180deg,rgba(231,49,140,.08),rgba(231,49,140,.02)); border-bottom:1px solid var(--border) }
+  .logo{ width:160px; height:auto }
+  .meta{ margin-left:auto; text-align:right; font-size:12px; color:var(--muted) }
+  h1{ font-size:26px; margin:20px 22px 8px; color:var(--pink) }
+  .section{ padding:10px 22px 22px }
+  .card{ border:1px solid var(--border); border-radius:12px; padding:14px 16px; margin:12px 0; background:#fff }
+  .label{ font-weight:700; color:var(--muted); font-size:12px; text-transform:uppercase; letter-spacing:.08em }
+  .grid{ display:grid; grid-template-columns:1fr 1fr; gap:12px 16px; margin-top:8px }
+  .field{ border:1px dashed var(--border); border-radius:10px; padding:10px 12px; min-height:38px; background:#fff }
+  .line{ display:inline-block; min-width:220px; border-bottom:1px dotted var(--muted); line-height:1.6; }
+  .inline{ display:flex; gap:18px; flex-wrap:wrap; align-items:center; margin:6px 0 }
+  .note{ font-size:12px; color:var(--muted); margin-top:6px }
+  table{ width:100%; border-collapse:collapse; margin-top:10px; font-size:14px }
+  thead th{ background:var(--pink); color:#fff; text-align:left; padding:8px 10px }
+  tbody td{ border-bottom:1px solid var(--border); padding:8px 10px; vertical-align:top; height:28px }
+  tbody tr:nth-child(even) td{ background:var(--bg) }
+  .sig-grid{ display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:16px }
+  .sig{ border-top:2px solid var(--border); min-height:80px; padding-top:10px; text-align:center; font-size:13px }
+  .small{ font-size:12px }
+  /* Tlač – skryť všetko interaktívne (nič nemáme), odstrániť tieň */
+  @media print{ .wrap{ box-shadow:none; border:0 } header{ background:none } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <!-- logo je v rovnakom priečinku -->
+    <img class="logo" src="logo.png" alt="Puella">
+    <div class="meta">
+      <div><strong>Preberací protokol – komisionálny predaj</strong></div>
+      <div>E-mail: <span>velkoobchod@puellavone.sk</span></div>
+      <div>puellavone.sk</div>
+    </div>
+  </header>
+
+  <h1>PREBERACÍ PROTOKOL</h1>
+
+  <div class="section">
+    <div class="inline small">
+      <div>Číslo protokolu: <span class="line" style="min-width:180px;"></span></div>
+      <div>Dátum: <span class="line" style="min-width:140px;"></span></div>
+      <div>Miesto prevzatia: <span class="line" style="min-width:200px;"></span></div>
+    </div>
+
+    <!-- Komitent -->
+    <div class="card">
+      <div class="label">Komitent (dodávateľ)</div>
+      <div class="grid">
+        <div class="field">
+          <strong>PUELLAvone s. r. o.</strong><br>
+          Rovníková 1457/7, 040 12 Košice – Nad jazerom
+        </div>
+        <div class="field">
+          Korešpondenčná adresa: Alvinczyho 28, 040 01 Košice<br>
+          OR: MS Košice, oddiel Sro, vložka 52158/V<br>
+          Štatutárny orgán: Martin Švenk, konateľ
+        </div>
+      </div>
+      <div class="grid" style="margin-top:12px">
+        <div class="field">IČO: 53 991 893</div>
+        <div class="field">DIČ: 2121542665</div>
+        <div class="field">IČ DPH: SK2121542665</div>
+        <div class="field"></div>
+      </div>
+    </div>
+
+    <!-- Komisionár -->
+    <div class="card">
+      <div class="label">Komisionár (odberateľ)</div>
+      <div class="grid">
+        <div class="field">
+          <div class="small">Názov / Meno</div>
+          <div class="line" style="min-width:100%;"></div>
+          <div class="small" style="margin-top:10px">IČO</div>
+          <div class="line" style="min-width:100%;"></div>
+          <div class="small" style="margin-top:10px">DIČ</div>
+          <div class="line" style="min-width:100%;"></div>
+          <div class="small" style="margin-top:10px">IČ DPH</div>
+          <div class="line" style="min-width:100%;"></div>
+          <div class="small" style="margin-top:10px">Sídlo / Adresa</div>
+          <div class="line" style="min-width:100%;"></div>
+        </div>
+        <div class="field">
+          <div class="small">Zastúpený</div>
+          <div class="line" style="min-width:100%;"></div>
+          <div class="small" style="margin-top:10px">Tel.</div>
+          <div class="line" style="min-width:100%;"></div>
+          <div class="small" style="margin-top:10px">E-mail</div>
+          <div class="line" style="min-width:100%;"></div>
+          <div class="small" style="margin-top:10px">Miesto predaja</div>
+          <div class="line" style="min-width:100%;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Predmet prevzatia – len prázdna tabuľka na ručné vypísanie -->
+    <div class="card">
+      <div class="label">Článok I – Predmet prevzatia</div>
+      <p class="small">Odovzdávajúci odovzdáva a preberajúci preberá hnuteľné veci podľa nižšie uvedenej špecifikácie (ďalej len „predmet prevzatia“). Tovar zostáva vo vlastníctve dodávateľa až do úplnej úhrady ceny odberateľom.</p>
+
+      <table>
+        <thead>
+          <tr>
+            <th style="width:54%">Názov produktu</th>
+            <th style="width:16%">Počet ks</th>
+            <th style="width:30%">Poznámka</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- 12 prázdnych riadkov na ručné vypísanie -->
+          <tr><td></td><td></td><td></td></tr>
+          <tr><td></td><td></td><td></td></tr>
+          <tr><td></td><td></td><td></td></tr>
+          <tr><td></td><td></td><td></td></tr>
+          <tr><td></td><td></td><td></td></tr>
+          <tr><td></td><td></td><td></td></tr>
+          <tr><td></td><td></td><td></td></tr>
+          <tr><td></td><td></td><td></td></tr>
+          <tr><td></td><td></td><td></td></tr>
+          <tr><td></td><td></td><td></td></tr>
+          <tr><td></td><td></td><td></td></tr>
+          <tr><td></td><td></td><td></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Odovzdanie a stav -->
+    <div class="card">
+      <div class="label">Článok II – Odovzdanie a stav</div>
+      <ol class="small" style="margin:8px 0 0 18px">
+        <li>Preberajúci týmto potvrdzuje, že dňa <span class="line" style="min-width:120px;"></span> predmet prevzatia prevzal a tento bol bez zjavnej vady.</li>
+        <li>Doba komisného predaja: max. 30 dní od prevzatia. Po uplynutí doby preberajúci nepredané kusy vráti alebo uhradí ponechané kusy na základe faktúry.</li>
+      </ol>
+    </div>
+
+    <!-- Ustanovenia -->
+    <div class="card">
+      <div class="label">Článok III – Doplňujúce ustanovenia</div>
+      <ol class="small" style="margin:8px 0 0 18px">
+        <li>Odberateľ nesie riziko škody, straty alebo odcudzenia tovaru od okamihu prevzatia do okamihu vrátenia alebo úhrady.</li>
+        <li>Dodávateľ vystaví faktúru za ponechané kusy; splatnosť 14 dní, úhrada bankovým prevodom.</li>
+        <li>Náklady na vrátenie nepredaného tovaru znáša odberateľ, ak sa strany nedohodnú inak.</li>
+      </ol>
+
+      <div class="sig-grid">
+        <div class="sig">Za odovzdávajúceho (PUELLAvone s. r. o.) – podpis a pečiatka</div>
+        <div class="sig">Za preberajúceho – podpis a pečiatka</div>
+      </div>
+    </div>
+
+    <p class="note" style="text-align:center;">Tlač: Súbor → Tlačiť (A4). Všetky polia sú určené na ručné vypísanie.</p>
+  </div>
+</div>
+</body>
+</html>
