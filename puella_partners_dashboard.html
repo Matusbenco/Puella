@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="sk">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Analýza VO partnerov | Puella</title>
+<style>
+  :root {
+    --bg:#f7f7fb; --card:#ffffff; --text:#1f2937; --muted:#6b7280; --border:#e5e7eb; --accent:#e7318c;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,Arial,sans-serif;}
+  .container{max-width:1200px;margin:0 auto;padding:24px}
+  .row{display:grid;gap:16px}
+  .grid-4{grid-template-columns:repeat(4,minmax(0,1fr))}
+  .grid-3{grid-template-columns:repeat(3,minmax(0,1fr))}
+  .grid-2{grid-template-columns:repeat(2,minmax(0,1fr))}
+  @media (max-width:960px){ .grid-4,.grid-3{grid-template-columns:1fr} .grid-2{grid-template-columns:1fr} }
+  .card{background:var(--card);border:1px solid var(--border);border-radius:16px;box-shadow:0 8px 28px rgba(0,0,0,.05)}
+  .card .content{padding:16px 18px}
+  h1{font-size:28px;margin:0 0 6px 0}
+  .muted{color:var(--muted)}
+  .controls label{font-size:12px;color:#6b7280;display:block;margin-bottom:6px}
+  .input, .select{width:100%;padding:10px 12px;border:1px solid var(--border);border-radius:12px;outline:none}
+  .badge{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;border:1px solid var(--border);background:#fff;font-size:12px}
+  .btn{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--border);background:#fff;padding:10px 14px;border-radius:12px;cursor:pointer}
+  .btn.primary{background:var(--accent);color:#fff;border-color:transparent}
+  .btn:hover{filter:brightness(0.98)}
+  .kpi .val{font-size:28px;font-weight:700}
+  table{
+    width:100%;border-collapse:collapse;font-size:14px;
+  }
+  thead th{
+    position:sticky;top:0;background:#f3f4f6;z-index:1;
+  }
+  th, td{padding:10px 12px;border-top:1px solid var(--border);text-align:left;vertical-align:top}
+  .kanban-col{max-height:420px;overflow:auto}
+  .pill{display:inline-block;padding:4px 8px;border-radius:999px;background:#f3f4f6;font-size:12px}
+  .item{background:#fff;border:1px solid var(--border);border-radius:12px;padding:10px;box-shadow:0 4px 14px rgba(0,0,0,.04)}
+  .footnote{font-size:12px;color:var(--muted)}
+</style>
+</head>
+<body>
+  <div class="container">
+    <header style="display:flex;justify-content:space-between;gap:16px;align-items:flex-start;margin-bottom:16px">
+      <div>
+        <h1>Analýza VO partnerov</h1>
+        <div class="muted" style="font-size:14px">Interaktívny report z exportu – filtre, kanban, tabuľka, CSV export.</div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn" id="btn-reset">Reset filtrov</button>
+        <button class="btn primary" id="btn-export">Export CSV</button>
+      </div>
+    </header>
+
+    <section class="card">
+      <div class="content controls">
+        <div class="row grid-4">
+          <div class="col">
+            <label>Fulltext</label>
+            <input id="q" class="input" placeholder="Hľadať v Predmet / Popis / Kontakty">
+          </div>
+          <div class="col">
+            <label>Status</label>
+            <select id="status" class="select" multiple size="4"></select>
+          </div>
+          <div class="col">
+            <label>Mesto / Umiestnenie</label>
+            <select id="city" class="select" multiple size="4"></select>
+          </div>
+          <div class="col">
+            <div class="row grid-2">
+              <div>
+                <label>Dátum od</label>
+                <input id="dateFrom" class="input" type="datetime-local">
+              </div>
+              <div>
+                <label>Dátum do</label>
+                <input id="dateTo" class="input" type="datetime-local">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="activeFilters" style="margin-top:10px;display:flex;gap:8px;flex-wrap:wrap"></div>
+      </div>
+    </section>
+
+    <section style="margin-top:16px">
+      <div class="row grid-4">
+        <div class="card kpi"><div class="content"><div class="muted">Spolu záznamov</div><div class="val" id="kpi-total">0</div></div></div>
+        <div class="card kpi"><div class="content"><div class="muted" id="kpi-s1-name">Stav A</div><div class="val" id="kpi-s1">0</div></div></div>
+        <div class="card kpi"><div class="content"><div class="muted" id="kpi-s2-name">Stav B</div><div class="val" id="kpi-s2">0</div></div></div>
+        <div class="card kpi"><div class="content"><div class="muted" id="kpi-s3-name">Stav C</div><div class="val" id="kpi-s3">0</div></div></div>
+      </div>
+    </section>
+
+    <section class="card" style="margin-top:16px">
+      <div class="content">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+          <span class="muted">Najbližších 5 udalostí</span>
+        </div>
+        <ul id="upcoming" style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:8px"></ul>
+      </div>
+    </section>
+
+    <section style="margin-top:16px">
+      <div class="row grid-3" id="kanban"></div>
+    </section>
+
+    <section class="card" style="margin-top:16px">
+      <div class="content" style="padding:0">
+        <div style="max-height:520px;overflow:auto">
+          <table>
+            <thead>
+              <tr>
+                <th>Počiatočný dátum</th>
+                <th>Stav</th>
+                <th>Predmet</th>
+                <th>Umiestnenie</th>
+                <th>Týka sa</th>
+                <th>Kontakty</th>
+                <th>Popis</th>
+                <th>Priradené</th>
+              </tr>
+            </thead>
+            <tbody id="tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <p class="footnote" style="margin-top:12px">Tento report je offline (single-file HTML). Dáta sú vložené priamo v kóde.</p>
+  </div>
+
+<script>
+// --- VLOŽENÉ DÁTA ---
+const DATA = [{"Stav": "Plánovaný", "Stav KEY": "Planned", "Počiatočný dátum": "2025-09-08 05:30:00", "Predmet": "Potraviny Darka – potraviny Adresa: Adlerova 17", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "Košice Furča", "Popis:": "", "Priradené": "Matúš Benčo"}, {"Stav": "Plánovaný", "Stav KEY": "Planned", "Počiatočný dátum": "2025-09-17 11:00:00", "Predmet": "NEONKA - predajne", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "košiced", "Popis:": "Dohodnute stretnutiie 17.9.2025 o 13:00\nPripravit prezentaciu.", "Priradené": "Matúš Benčo"}, {"Stav": "Neuskutečněný", "Stav KEY": "Not Held", "Počiatočný dátum": "2025-09-08 12:00:00", "Predmet": "Pre spanok", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "", "Popis:": "poslany email na SK a b2b centralu", "Priradené": "Matúš Benčo"}, {"Stav": "Neuskutečněný", "Stav KEY": "Not Held", "Počiatočný dátum": "2025-09-09 13:00:00", "Predmet": "Fresh Budimir", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "Budimir", "Popis:": "Z neznamych pricin bol zatvoreny", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-10 13:30:00", "Predmet": "Záhradné a chovateľské potreby - sečovská polianka", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "Sečovská polianka", "Popis:": "mladý syn (chlapec) majitela na predajni. Ze odovzdá info rodicom. Teoreticky vhodna predajna, kde by som si to vedel predstavit.", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-05 08:00:00", "Predmet": "Textil a Rozličný Tovar Ďurkov --", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "Ďurkov", "Popis:": "nemala majitelka absolutny zaujem. S nou nepohnem, ale oproti potraviny fresh maju potencial", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-03 06:30:00", "Predmet": "Kvetinárstvo Hlavna - Sečovce+", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "Sečovce", "Popis:": "Mala zatvorenu predajnu, poslana sprava cez fb. zatial bez odpovede. Stavim sa tam nabuduce", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-08 05:30:00", "Predmet": "Elisshaus Lidické námestie 894, 040 22 Košice", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "Košice Furča", "Popis:": "nenasiel som takuto predajnu, zrejme len fakturacna adresa bez predajne", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-09 13:00:00", "Predmet": "Potraviny u Moniky Vajkovce", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "Vajkovce", "Popis:": "bude rusit prevadzku, zvysili jej najom. otvorene iba do konca oktobra 2025. Dopredava tovar", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-08 05:30:00", "Predmet": "Drogéria Lilly - Eva Matiková Kalinovská 865, 040 22 Košice", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "Košice Furča", "Popis:": "obisiel som to cele, no predajnu som nenasiel", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-03 13:00:00", "Predmet": "Textil-obuv Secovce Cyrila a metoda", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "Secovce - C", "Popis:": "sikmooka majitelka, nemala zaujem, ale nechala ma rozpravat, nechal som jej cennik, vizitku, nejake vzorky. Velku sancu tomu ale nedavam", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-10 13:30:00", "Predmet": "Galantéria Helena Sečovská Polianka", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "Sečovská Polianka", "Popis:": "Veľký nezáujem", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-09 13:00:00", "Predmet": "Potraviny Satelit Beniakovce", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "Beniakovce", "Popis:": "zatvorene - dovolenka do 15.9.2025", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-03 12:30:00", "Predmet": "Rozličný tovar Bidovce", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "Bidovce", "Popis:": "taky znudeny chlapik majitel, absolutne nemal zaujem", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-09 13:00:00", "Predmet": "Boutique moda - textil", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "košice ťahanovce", "Popis:": "nebol zaujem", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-05 08:00:00", "Predmet": "Rozličný tovar Svalt , Čaňa **", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "Čaňa", "Popis:": "záujem , ze sa urcite ozve a rada by doplnila Puellu do sortimentu. Na predajni ma vselico", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-05 08:00:00", "Predmet": "Farby Bidovce", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "Bidovce", "Popis:": "nebol zaujem, malinka predajna, obcas otvorena, nemalo by to tam predajnost", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-04 08:00:00", "Predmet": "Potraviny Marinjak Ďurkov", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "Ďurkov", "Popis:": "- Druha navsteva: zaregistrovanie + objednavka vzoriek\n- na predajni som dostal cislo na veduceho, dohodnute stretnutie na 5.9.", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-05 13:30:00", "Predmet": "Rozhanovce Mix večierka", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "Rozhanovce", "Popis:": "nebol záujem o tento typ sortimentu", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-09 13:00:00", "Predmet": "Potraviny XXX Ťahanovce", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "košice ťahanovce", "Popis:": "predavacka mila, aj pouziva puellu, no neviem rozhodnut . Majitel na dovolenke do konca tyzdna.", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-05 08:00:00", "Predmet": "FRAJKOROVÁ EVA - Kaderníctvo", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "šečovce", "Popis:": "nemala záujem", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-05 13:30:00", "Predmet": "Fresh Rozhanovce", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "Rozhanovce", "Popis:": "zasobuje vyhradne iba Labaš", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-10 13:30:00", "Predmet": "Potraviny FRAPEK", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "", "Popis:": "tu iba potraviny , nic ine", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-10 13:30:00", "Predmet": "Darčeky-kvety-vence Sečovská polianka", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "Sečovská polianka", "Popis:": "na pred bol chlap, ktory to nepoznal. Davalo mu to vyznam to mat na predajni, ale ze to musi s manzelkou prejednat a podla toho co povie. Pouziva nieco take, ale ze nevie ci Puellu. Inak na predajni ziadnu drogeriu nemaju.", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-05 08:00:00", "Predmet": "Fresh Bohdanovce +", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "Bohdanovce", "Popis:": "zaujem, no prediskutuje majitelka s manzelom. Trochu sa boji vysokych cien a zaujmu na dedine", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-10 14:00:00", "Predmet": "Fantasy Home Vranov", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "Vranov", "Popis:": "Predavacke sa myslienka pacila, ale nemoze rozhodnut.\nNecha materialy pre majitela.", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-08 05:30:00", "Predmet": "Potraviny FRESH mini Olšovany", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "Olšovany", "Popis:": "S majitelkou prebhla telefonicka diskusia, vyziadala si katalog, cennika info do emailu - Zaslane\n\npredavacka romka, toho vela nevedla, cislo na veducu 0908 300 680, 0911 844 308.", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-05 08:00:00", "Predmet": "Stavebniny - farby Sečovce --", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "Sečovce", "Popis:": "Nemaju drogeriu ziadnu a ani nechce", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-08 08:30:00", "Predmet": "Kvetinarstvo Katarina Furča", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "košice furČa", "Popis:": "nebol zaujem, ale skusim este poslat ponuku do emailu", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-10 13:30:00", "Predmet": "Kvety Andrea", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "Lomnica", "Popis:": "velmi zaujem nemala, ale zeby predsa mozno skusila. Musi este popozerat, pozriet ceny a pod...", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-05 13:30:00", "Predmet": "Jan Dlabal potraviny Rozhanovce", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "Rozhanovce", "Popis:": "na mape sice su, ale v skutocnosti uz nie su. Naproti je hned Milk Agro.", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-10 13:30:00", "Predmet": "VIOFEL Potraviny", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "Vranov", "Popis:": "mensia siet predajni potravin. Na predajni bola predavacka, dala mi cislo na veducu. \nPo telefonickom rozhovore, tiez na to nemala pravomoc a doporucila mi dopytovat centralu VIOFEL Bartošovce.", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-05 11:30:00", "Predmet": "Mgr. Peter Porubský - CASHLAND ďurkov", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "ďurkov", "Popis:": "v pohode majitel, jeho zena pouziva puellu.\nSa mu to zapacilo, vytvorili sme registraciu. Porozprava s manzelkou a veri ze spravia prvu objednavku. Celkom z toho mal radost. Mal romov ktori sa na Puellu dopytoval :)", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-09 13:00:00", "Predmet": "Potraviny Aténska 2", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "", "Popis:": "absolutne nezaujem", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-04 08:30:00", "Predmet": "Kadernícky salon ELEONOR", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "Trebišov", "Popis:": "Predáva iba vlasovú kozmetiku, o iné nemá záujem", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-10 13:30:00", "Predmet": "DUMIRO - siet drogerii ***", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "Vranov", "Popis:": "krasna drogeria, kopec zakaznikov na predajni, niekolko predavaciek. \nNa predajni nerozhoduje ani veduca co bude na predajni, dala mi kontakt na kompetentnu osobu.\nNasledne som sa telefonicky spojil s panom Sklenarom 0905 925 401. dumiro.sklad@gmail.com\nPoslat info do mailu a pripadne dohodneme stretnutie.\nMaju na predajnach ale GIOVANI, takze tam ide o to kto da lepsie podmienky.\n\nTu by bola plodna spolupraca :)", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-05 13:30:00", "Predmet": "Rozličný tovar Rozhanovce --", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "Rozhanovce", "Popis:": "Na hlavnej križovatke. Majitel starsi pan, ktory Puellu nepoznal a nechcel si nechat nic vysvetlit. On podnika 25 rokov a nechce nic co nepozna :)", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-08 13:30:00", "Predmet": "Obchodný k pre radosť", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "", "Popis:": "Záujem hlavne sviečky, difuzery. Že si ale ešte rozmyslí a ozve sa", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-08 14:00:00", "Predmet": "Papierníctvo OC jumbo Košice", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "", "Popis:": "Na predajni iba bola predavačka ktorá má rada puellu, dobre sme si pokecali, a páčilo by sa jej to mať na predajni. Odovzdá materiály majiteľke.", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-08 05:30:00", "Predmet": "Potraviny U Valiky sady nad torysou zdoba 99", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "sady nad torysou", "Popis:": "Tieto potraviny su uz trvalo zatvorene", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-09 13:00:00", "Predmet": "Kuchyňa Jana - Rozličný tovar Ťahanovce", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "Majitelka nebola na predajni, predavacka poznala, aj by sa jej to pacilo mat na predajni, ale treba to s majitelkou. Nechane nu C-V-V", "Popis:": "", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-08 11:00:00", "Predmet": "Neonka KE", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "Košice", "Popis:": "na predajni bolo povedane ze oni take neriesia, skusit napisat email. Email s katalogom poslany", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-10 14:00:00", "Predmet": "HALDO - zmiesany tovar Vranov", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "Vranov", "Popis:": "cinsky obchod, velmi zaujem nebol, z toho nic zrejme nebude", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-02 09:00:00", "Predmet": "Kvetinárstvo + darčekové predmety (Poľná 682/8)", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "Sečovce", "Popis:": "nebol zaujem, nemaju tento typ sortimentu", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-08 08:00:00", "Predmet": "Kaderníctvo jasmin furca", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "Košice furça", "Popis:": "Nebol l zaujem", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-03 12:30:00", "Predmet": "1000 drobnosti Chaos **", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "Secovce", "Popis:": "bol velky zaujem , ale nerozpraval som s majitelkou. Urcite ze posunie informacie majitelke", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-05 08:00:00", "Predmet": "Family Papiernictvo / hračky **", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "Čaňa", "Popis:": "V ponuke maju aj nejakú drogériu. Majiteľke sa to páčilo, no rada by si ešte prešla kjatalóg, do mailu nechcela, že počká na tlačenú verziu a potom dohodneme, treba sa ešte staviť", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-05 08:30:00", "Predmet": "Farby Body Trebišov", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "Trebišov", "Popis:": "Nechaný cenník aj vizitky, ale nemal o to veľmi záujem. Drogériu neplánuje. Zatiaľ :)", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-09 13:00:00", "Predmet": "Potraviny Mix Vajkovce", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "Vajkovce", "Popis:": "stara pani, nepozna puellu, no ze vyskusa vzorky. Pride jej ze to je drahe, preto nechcela hned objednat..\nVelku sancu tomu nedavam, ze zmeni nazor.", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-09 13:00:00", "Predmet": "Potraviny Z+M Ťahanovce", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "košice ťahanovce", "Popis:": "nebol majitel na predajni, nechany C+V+V", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-05 13:30:00", "Predmet": "Fresh Bidovce", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "Bidovce", "Popis:": "zasobuje vyhradne iba Labaš", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-03 09:30:00", "Predmet": "Rozličný Tovar Vojčice", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "Vojčice / sečovce", "Popis:": "vedla CBA, majitelka bola na predajni, ze prediskutuje s muzom. Najprv nechcela ze drahe, obec ma cigošov, na to som jej apeloval, ze tito maju puellu najradsej :D", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-09 13:00:00", "Predmet": "Papiernictvo Reflex plus", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "Košice", "Popis:": "Maju zaujem o Puellu, ale chcu lepsie ceny. odkomunikoval a nechal som jej novy cennik Ze prehodnoti.  V minulosti uz riesila telefonicky spolupracu", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-10 13:30:00", "Predmet": "Merkur Vranov", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "Vranov", "Popis:": "oblečenie, starsia pani, nechcela takyto doplnkovy tovar, ani to nepoznala a tazka komunikacia s nou bola", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-05 07:30:00", "Predmet": "Domáce potreby Shopbox Košice **", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "Košice Furča", "Popis:": "Majú v ponuke aj drogériu, zamestnancom sa myšlienka páčila, že odovzdajú infomáciu vedúcej. Ponechaný cenník, vizitky, vzorky. Treba sa ešte zastaviť", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-04 07:30:00", "Predmet": "Kvetinárstvo Shopbox košice **", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "Košice Furča", "Popis:": "Predávačka mala veľkjý záujem , maju v ponuke aj rozny tovar. Odovzda informacie majitelke, ta je k dispozicii kazdu stredu aj v piatok. Treba sa este zastavit osobne", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-10 14:00:00", "Predmet": "Pi a Pa - rozlicny tovar Vranov", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "", "Popis:": "cinsky obchod, majitelka si vzorne presla katalog, nechala poslat aj do emailu. Hned objednat ani registrovat sa nechcela, ale vraj si to este pozriet a mozno. Popri rozhovore sa venovala zakaznikom, ktorych bolo na predajni celkom diost", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-03 08:00:00", "Predmet": "Domáce potreby Sečovce **", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "Sečovce", "Popis:": "majitelke sa to pacilo, ze prediskutuje s manzelom a ozve sa. katalog poslany na email. Obchodná 175, 078 01 Sečovce", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-10 14:00:00", "Predmet": "Potraviny CBA Partner Vechec", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "Vechec", "Popis:": "Zamestnankyna by hned brala. Odovzda materialy veducej / majitelke. Vraj by sa jej to mohlo pacit.", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-05 08:00:00", "Predmet": "Kvety Timka Bohdanovce", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "Bohdanovce", "Popis:": "ta ma odbila, absolutne nezaujem o tento typ produktov", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-10 14:00:00", "Predmet": "Kvetinárstva Vranov", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "Vranov", "Popis:": "Navštívil som 3 a ani v jednom ziaden zaujem", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-05 08:00:00", "Predmet": "Fresh Ruskov ++", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "Ďurkov", "Popis:": "po diskusii so zamestnancami som dostal kontakt na veduceho, ktoremu som volal. Velmi nechcel, ale nakoniec ho to zaujalo, poslal som mu do mailu cennik, katalog, informacie a dohodnute stretnutie na pondelok 8.9 medzi 8-9 rano", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-03 08:30:00", "Predmet": "Mladost Drogeria", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "Sečovce", "Popis:": "Majitelka nebola na predajni, no nechal som jej cennik, vzorky, pride koncom mesiaca. Idealna predajna na predaj.", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-09 13:00:00", "Predmet": "SOS Majster Budimir", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "Budimir", "Popis:": "Najprv nechceli vobec, ze oni su stavebniny. Po dlhsej diskusii, ale tomu zacali davat sancu. Ze este prediskutuju.", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-10 14:00:00", "Predmet": "Darček Vranov", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "Vranov", "Popis:": "nebol velmi zaujem, ale porozpraval som majitelke info, nakoniec si nechala cennik, vizitku, vzorky....ale nedavam tomu velku sancu", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-09 13:00:00", "Predmet": "Kvetinárstvo Ťahanovce", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "košice ťahanovce", "Popis:": "oslovil som 3 kvetinarstva v ťahanovciach a ani v jednom naznak zaujmu", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-10 13:30:00", "Predmet": "Drogeria Vranov AS Stanica", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "Vranov", "Popis:": "pani po 30 rokoch planuje ze tuto drogeriu uz zatvori do konca roku 2025. Ze jej tam uz chodia iba najvacsie socky, takze uz velmi nechce ist do nicoho noveho.", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-05 08:00:00", "Predmet": "Pneuservis Autobox Čaňa +", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "Čaňa", "Popis:": "nová prevádzka, plánuju čoskoro aj predaj produktov, visačky voni do auta by tu mali vyznam.", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-08 08:30:00", "Predmet": "Klas mini Furča 1", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "Košice Furča", "Popis:": "mali vzorky, ale boli pomerne skryte za pokladnou vo vylohe, bez sance aby ich zakaznik nasiel. Pri otazke preco tak skryte, predavac odpovedal, ze daju tovar tam kde sa povie.", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-08 06:00:00", "Predmet": "Potraviny Včielka  Varšavská 13 ťahanovce", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "košice ťahanovce", "Popis:": "", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-08 05:30:00", "Predmet": "Potraviny Lienka  Kalinovská 863, 040 22 Dargovských hrdinov", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "Košice Furča", "Popis:": "Majitelka ma tak 70r., nemala zaujem, ani cennik nechcela ,ze si to urcite nerozmysli", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-03 13:30:00", "Predmet": "Adventure shop Sečovce", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "Sečovce", "Popis:": "Nelaka ich rozsirit segment o Puellu, nemaju v ponuke nic podobne", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-10 14:00:00", "Predmet": "textil, obuv, domace potreby Vranov", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "", "Popis:": "na predajni predavacka, odovzda info a materialy majitelovi", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-05 08:00:00", "Predmet": "Milk Agro Čaňa --", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "Čaňa", "Popis:": "Zamestnanci velmi nevedeli ako prebieha nakup...je to centralne zasobovanie,", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-08 05:30:00", "Predmet": "DROGÉRIA - Petrášová Helena ťahanovce", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "košice ťahanovce", "Popis:": "", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-09 13:00:00", "Predmet": "Potraviny Svehanič Ťahanovce", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "košice ťahanovce", "Popis:": "absolutne bez zaujmu, ani vizitku nechcela", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-10 13:30:00", "Predmet": "Potraviny AS Stanica Vranov", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "Vranov", "Popis:": "ze aj keby chcela, nemoze predavat tekutu drogeriu, lebo ma na prevadzke otvorene potraviny (bagety, ovocie...)", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-10 13:30:00", "Predmet": "Rozličný tovar - čemerné, ul. ružová", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "Čemerné", "Popis:": "nevychytal som dobry cas, lebo dostali tovar a majitelka bola v zhone. \nAvsak nasla si cas, prediskutovali sme, celkom sa jej pacila moznost spoluprace. Ze sa na to urcite pozrie. Pekna predajna, aj s drogeriou a vsetkym moznym, vzorne upravena. Tu by sa to hodilo. Ak sa neozve , kontaktovat znovu.", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-03 12:30:00", "Predmet": "Potraviny Mix Bidovce", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "Bidovce", "Popis:": "Nemali zaujem, su presvedceni ze u nich by sa to nepredavalo. Su to malicke potraviny, ktore su castejsie zatvorene, ako otvorene", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-03 08:00:00", "Predmet": "BELLA FIORI – kvetinárstvo --", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "Bidovce", "Popis:": "nema zaujem ani nema ziadny doplnkovy predaj v obchode", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-08 05:30:00", "Predmet": "Kreativ market Kurská 886, 040 22 Košice", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "Košice Furča", "Popis:": "absencia predajne - neni to kamenna prevádzka", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-03 13:00:00", "Predmet": "Potraviny Jamala", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "Sečovce", "Popis:": "absolutne nezaujem, drogeria sa im nepredava.\nV blizkosti 2 velke drogerie DM a 101", "Priradené": "Matúš Benčo"}, {"Stav": "Uskutočnený", "Stav KEY": "Held", "Počiatočný dátum": "2025-09-10 14:00:00", "Predmet": "Darček od Lívie", "Týka sa": "", "Kontakty": "", "Kontakty: KEY": "", "Umiestnenie:": "Vranov", "Popis:": "majitelka nepoznala Puellu, ale jej dcera nieco take pouziva.\nPekna mala predajna s roznym tovarom, Puella by tam celkom zapasovala. produkty sa jej pacila, hned aj testovala.\nChce to ale najprv prediskutovat s dcerou, ktora sa do toho viac vyzná.", "Priradené": "Matúš Benčo"}];
+
+// Helpers
+const toDate = (s) => { try { if(!s) return null; const d = new Date(s); return isNaN(d.getTime())?null:d; } catch(e) { return null; } };
+const fmt = (d) => d ? d.toLocaleString() : "";
+
+const rows = DATA.map(r => ({ 
+  ...r, 
+  __date: toDate(r["Počiatočný dátum"]), 
+  __status: r["Stav"]||"", 
+  __city: r["Umiestnenie:"]||"", 
+  __topic: r["Predmet"]||"", 
+  __owner: r["Priradené"]||"", 
+  __desc: r["Popis:"]||""
+}));
+
+const uniq = (arr) => Array.from(new Set(arr.filter(Boolean)));
+
+function applyFilters() {
+  const q = document.getElementById('q').value.trim().toLowerCase();
+  const statusSel = Array.from(document.getElementById('status').selectedOptions).map(o=>o.value);
+  const citySel = Array.from(document.getElementById('city').selectedOptions).map(o=>o.value);
+  const dateFrom = document.getElementById('dateFrom').value ? new Date(document.getElementById('dateFrom').value) : null;
+  const dateTo = document.getElementById('dateTo').value ? new Date(document.getElementById('dateTo').value) : null;
+
+  const filtered = rows.filter(r => {
+    const hay = `${r.__topic} ${r.__desc} ${r["Týka sa"]||""} ${r["Kontakty"]||""}`.toLowerCase();
+    if (q && !hay.includes(q)) return false;
+    if (statusSel.length && !statusSel.includes(r.__status)) return false;
+    if (citySel.length && !citySel.includes(r.__city)) return false;
+    if (dateFrom && r.__date && r.__date < dateFrom) return false;
+    if (dateTo && r.__date && r.__date > dateTo) return false;
+    return true;
+  });
+
+  renderTable(filtered);
+  renderKpi(filtered);
+  renderUpcoming(filtered);
+  renderKanban(filtered);
+
+  renderActiveFilters({q, statusSel, citySel, dateFrom, dateTo});
+  window.__filtered = filtered;
+}
+
+function renderSelects() {
+  const statuses = uniq(rows.map(r=>r.__status));
+  const cities = uniq(rows.map(r=>r.__city));
+  const statusEl = document.getElementById('status');
+  const cityEl = document.getElementById('city');
+  statusEl.innerHTML = statuses.map(s=>`<option value="${s}">${s||'(bez stavu)'}`).join('');
+  cityEl.innerHTML = cities.map(c=>`<option value="${c}">${c||'(bez umiestnenia)'}`).join('');
+
+  // uložíme pre KPI popisky
+  window.__statuses = statuses;
+}
+
+function renderTable(data) {
+  const tb = document.getElementById('tbody');
+  tb.innerHTML = data.map(r => `
+    <tr>
+      <td>${fmt(r.__date) || (r["Počiatočný dátum"]||'')}</td>
+      <td>${r.__status}</td>
+      <td>${r.__topic}</td>
+      <td>${r.__city}</td>
+      <td>${r["Týka sa"]||''}</td>
+      <td>${r["Kontakty"]||''}</td>
+      <td>${(r.__desc||'').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</td>
+      <td>${r.__owner}</td>
+    </tr>`).join('');
+}
+
+function renderKpi(data) {
+  document.getElementById('kpi-total').textContent = data.length;
+  const statuses = window.__statuses || [];
+  const counts = Object.fromEntries(statuses.map(s=>[s,0]));
+  data.forEach(r => counts[r.__status] = (counts[r.__status]||0) + 1);
+  const s = statuses.slice(0,3);
+  document.getElementById('kpi-s1-name').textContent = s[0] || 'Stav 1';
+  document.getElementById('kpi-s2-name').textContent = s[1] || 'Stav 2';
+  document.getElementById('kpi-s3-name').textContent = s[2] || 'Stav 3';
+  document.getElementById('kpi-s1').textContent = counts[s[0]] || 0;
+  document.getElementById('kpi-s2').textContent = counts[s[1]] || 0;
+  document.getElementById('kpi-s3').textContent = counts[s[2]] || 0;
+}
+
+function renderUpcoming(data) {
+  const list = document.getElementById('upcoming');
+  const now = new Date();
+  const up = data.filter(r=>r.__date && r.__date >= now).sort((a,b)=>a.__date-b.__date).slice(0,5);
+  list.innerHTML = up.length ? up.map(r=>`
+    <li class="item">
+      <div style="display:flex;justify-content:space-between;gap:12px">
+        <div>
+          <div style="font-weight:600">${r.__topic || '(bez predmetu)'} </div>
+          <div class="muted" style="font-size:12px">${r.__city} · ${r.__status} · ${r.__owner}</div>
+        </div>
+        <div style="white-space:nowrap">${fmt(r.__date)}</div>
+      </div>
+      ${r.__desc ? `<div style="margin-top:6px;font-size:13px">${r.__desc.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>`:''}
+    </li>
+  `).join('') : `<li class="muted">Žiadne nadchádzajúce termíny v aktuálnom filtri.</li>`;
+}
+
+function renderKanban(data) {
+  const statuses = window.__statuses || [];
+  const wrap = document.getElementById('kanban');
+  const groups = Object.fromEntries(statuses.map(s=>[s,[]]));
+  data.forEach(r=>groups[r.__status]?.push(r));
+  wrap.innerHTML = statuses.map(s => `
+    <div class="card"><div class="content">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <div style="font-weight:600">${s || '(bez stavu)'} </div>
+        <span class="pill">${(groups[s]||[]).length}</span>
+      </div>
+      <div class="kanban-col">
+        ${(groups[s]||[]).map(r => `
+          <div class="item" style="margin-bottom:8px">
+            <div style="font-weight:600;font-size:14px">${r.__topic || '(bez predmetu)'} </div>
+            <div class="muted" style="font-size:12px;margin-top:2px">${r.__city} · ${r.__owner}</div>
+            ${r.__date ? `<div class="muted" style="font-size:12px;margin-top:2px">${fmt(r.__date)}</div>`:''}
+            ${r.__desc ? `<div style="font-size:13px;margin-top:6px">${r.__desc.replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>`:''}
+          </div>
+        `).join('')}
+      </div>
+    </div></div>
+  `).join('');
+}
+
+function renderActiveFilters({q,statusSel,citySel,dateFrom,dateTo}) {
+  const box = document.getElementById('activeFilters');
+  const pills = [];
+  if (q) pills.push(`<span class="badge">Hľadám: ${q}</span>`);
+  statusSel.forEach(s=>pills.push(`<span class="badge">${s}</span>`));
+  citySel.forEach(c=>pills.push(`<span class="badge">${c}</span>`));
+  if (dateFrom) pills.push(`<span class="badge">od ${dateFrom.toLocaleString()}</span>`);
+  if (dateTo) pills.push(`<span class="badge">do ${dateTo.toLocaleString()}</span>`);
+  box.innerHTML = pills.join('');
+}
+
+function exportCsv() {
+  const rows = window.__filtered || DATA;
+  if(!rows.length) return;
+  const cols = ["Počiatočný dátum","Stav","Predmet","Umiestnenie:","Týka sa","Kontakty","Popis:","Priradené"];
+  const esc = (v) => '"' + String(v??'').replace(/"/g,'""') + '"';
+  const header = cols.map(esc).join(';');
+  const body = rows.map(r => cols.map(c=>esc(r[c])).join(';')).join('\n');
+  const blob = new Blob([header+'\n'+body],{type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download='partners_export.csv'; a.click(); URL.revokeObjectURL(url);
+}
+
+function resetFilters() {
+  document.getElementById('q').value = '';
+  ;['status','city'].forEach(id=>Array.from(document.getElementById(id).options).forEach(o=>o.selected=false));
+  document.getElementById('dateFrom').value='';
+  document.getElementById('dateTo').value='';
+  applyFilters();
+}
+
+document.getElementById('btn-export').addEventListener('click', exportCsv);
+document.getElementById('btn-reset').addEventListener('click', resetFilters);
+['q','status','city','dateFrom','dateTo'].forEach(id => {
+  document.getElementById(id).addEventListener('input', applyFilters);
+  document.getElementById(id).addEventListener('change', applyFilters);
+});
+
+renderSelects();
+applyFilters();
+</script>
+</body>
+</html>
