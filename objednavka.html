@@ -11,7 +11,6 @@
   body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,Arial,sans-serif;color:var(--text);background:#fff;}
   .wrap{max-width:920px;margin:0 auto;border:1px solid var(--border);border-radius:16px;overflow:hidden;box-shadow:0 8px 28px rgba(0,0,0,.06)}
   header{padding:18px 22px;background:linear-gradient(180deg,rgba(231,49,140,.08),rgba(231,49,140,.02));border-bottom:1px solid var(--border)}
-  .meta{margin-left:auto;text-align:right;font-size:12px;color:var(--muted)}
   h1{font-size:26px;margin:0;color:var(--pink)}
   .section{padding:10px 22px 22px}
   .card{border:1px solid var(--border);border-radius:12px;padding:14px 16px;margin:12px 0;background:#fff}
@@ -27,12 +26,35 @@
   tbody tr:nth-child(even) td{background:var(--bg)}
   .right{text-align:right}
   .note{font-size:12px;color:var(--muted);margin-top:6px}
-  .sig-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:24px}
-  .sig{border-top:2px solid var(--border);min-height:80px;padding-top:10px;text-align:center;font-size:13px}
   .badge{display:inline-block;background:var(--pink);color:#fff;padding:2px 8px;border-radius:999px;font-size:12px;margin-left:6px}
   .btn{padding:10px 14px;border-radius:10px;border:0;background:var(--pink);color:#fff;font-weight:700;cursor:pointer}
   .print-hint{text-align:center;font-size:12px;color:var(--muted);padding:6px 0 12px}
-  @media print{ .wrap{box-shadow:none;border:0} .btn,.print-hint{display:none!important} input,textarea{border:0} header{background:none} }
+  
+  /* Štýly pre varianty */
+  .product-with-variants{cursor:pointer;user-select:none;transition:background .2s}
+  .product-with-variants:hover{background:rgba(231,49,140,.05)!important}
+  .product-with-variants.expanded{background:rgba(231,49,140,.08)!important}
+  .expand-icon{display:inline-block;margin-left:6px;font-size:11px;transition:transform .2s}
+  .product-with-variants.expanded .expand-icon{transform:rotate(180deg)}
+  .variants-container{display:none;padding:12px 0;background:rgba(231,49,140,.02);border-top:1px solid var(--border)}
+  .variants-container.open{display:block}
+  .variant-row{display:flex;align-items:center;gap:10px;margin:6px 0;padding:8px;background:#fff;border-radius:6px;border:1px solid var(--border)}
+  .variant-name{flex:1;font-size:13px;font-weight:500}
+  .variant-controls{display:flex;align-items:center;gap:6px}
+  .variant-btn{width:28px;height:28px;border:1px solid var(--border);background:#fff;border-radius:6px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s}
+  .variant-btn:hover{background:var(--pink);color:#fff;border-color:var(--pink)}
+  .variant-input{width:60px;text-align:center;padding:4px 6px;border:1px solid var(--border);border-radius:6px;font-size:13px}
+  
+  @media print{ 
+    .wrap{box-shadow:none;border:0} 
+    .btn,.print-hint{display:none!important} 
+    input,textarea{border:0} 
+    header{background:none}
+    .product-with-variants{cursor:default}
+    .product-with-variants:hover{background:transparent!important}
+    .expand-icon{display:none}
+    .variant-btn{display:none}
+  }
 </style>
 </head>
 <body>
@@ -99,7 +121,7 @@
 
     <div class="card">
       <div class="label">Objednávka</div>
-      <p>Vypĺňte množstvo, do poznámky zadajte podrobnosti ako typ vône a pod.</p>
+      <p>Kliknite na produkt s variantmi (označené šípkou ▼) a vyberte varianty: Double, Frayo, Emija, JaLu, Quenka, First Dream.</p>
 
       <table id="tbl">
         <thead>
@@ -111,181 +133,8 @@
             <th class="right" style="width:14%">Celkom (bez DPH)</th>
           </tr>
         </thead>
-        <tbody>
-          <tr data-price="1.62">
-            <td>Puella parfumov na pranie – Skúšobný set (6 ks z každej vône)</td>
-            <td><input class="p-note" type="text" style="width:100%"></td>
-            <td><input type="number" min="0" step="1"></td>
-            <td class="right">1,62&nbsp;€</td><td class="right" data-total>0,00&nbsp;€</td>
-          </tr>
-          <tr data-price="4.47">
-            <td>Puella parfum na pranie 50 ml</td>
-            <td><input class="p-note" type="text" style="width:100%"></td>
-            <td><input type="number" min="0" step="1"></td>
-            <td class="right">4,47&nbsp;€</td><td class="right" data-total>0,00&nbsp;€</td>
-          </tr>
-          <tr data-price="13.68">
-            <td>Puella parfum na pranie 250 ml <span class="badge">darček: Pásiky 10 ks</span></td>
-            <td><input class="p-note" type="text" style="width:100%"></td>
-            <td><input id="qty250" type="number" min="0" step="1"></td>
-            <td class="right">13,68&nbsp;€</td><td class="right" data-total>0,00&nbsp;€</td>
-          </tr>
-          <tr data-price="0">
-            <td>Pásiky na pranie – 10 ks – DARČEK k 250 ml parfumu</td>
-            <td><input class="p-note" type="text" style="width:100%" readonly></td>
-            <td><input id="qtyBonusStrips" type="number" min="0" step="1" readonly></td>
-            <td class="right">0,00&nbsp;€</td><td class="right" data-total>0,00&nbsp;€</td>
-          </tr>
-          <tr data-price="19.90">
-            <td>Puella parfum na pranie 500 ml <span class="badge">darček: Prací gél 1000 ml</span></td>
-            <td><input class="p-note" type="text" style="width:100%"></td>
-            <td><input id="qty500" type="number" min="0" step="1"></td>
-            <td class="right">19,90&nbsp;€</td><td class="right" data-total>0,00&nbsp;€</td>
-          </tr>
-          <tr data-price="0">
-            <td>Prací gél 1000 ml – DARČEK k 500 ml parfumu</td>
-            <td><input class="p-note" type="text" style="width:100%" readonly></td>
-            <td><input id="qtyBonus" type="number" min="0" step="1" readonly></td>
-            <td class="right">0,00&nbsp;€</td><td class="right" data-total>0,00&nbsp;€</td>
-          </tr>
-          <tr data-price="4.29">
-            <td>Darčekové balenie Puella vzoriek – 12 ks</td>
-            <td><input class="p-note" type="text" style="width:100%"></td>
-            <td><input type="number" min="0" step="1"></td>
-            <td class="right">4,29&nbsp;€</td><td class="right" data-total>0,00&nbsp;€</td>
-          </tr>
-          <tr data-price="6.39">
-            <td>Darčekové balenie Puella vzoriek – 18 ks</td>
-            <td><input class="p-note" type="text" style="width:100%"></td>
-            <td><input type="number" min="0" step="1"></td>
-            <td class="right">6,39&nbsp;€</td><td class="right" data-total>0,00&nbsp;€</td>
-          </tr>
-          <tr data-price="0.63">
-            <td>Prací gél – jednorazová vzorka</td>
-            <td><input class="p-note" type="text" style="width:100%"></td>
-            <td><input type="number" min="0" step="1"></td>
-            <td class="right">0,63&nbsp;€</td><td class="right" data-total>0,00&nbsp;€</td>
-          </tr>
-          <tr data-price="4.75">
-            <td>Prací gél 250 ml (univerzálny/čierna/biela)</td>
-            <td><input class="p-note" type="text" style="width:100%"></td>
-            <td><input type="number" min="0" step="1"></td>
-            <td class="right">4,75&nbsp;€</td><td class="right" data-total>0,00&nbsp;€</td>
-          </tr>
-          <tr data-price="7.31">
-            <td>Prací gél 500 ml (univerzálny/čierna/biela)</td>
-            <td><input class="p-note" type="text" style="width:100%"></td>
-            <td><input type="number" min="0" step="1"></td>
-            <td class="right">7,31&nbsp;€</td><td class="right" data-total>0,00&nbsp;€</td>
-          </tr>
-          <tr data-price="11.70">
-            <td>Prací gél 1000 ml (univerzálny/čierna/biela)</td>
-            <td><input class="p-note" type="text" style="width:100%"></td>
-            <td><input type="number" min="0" step="1"></td>
-            <td class="right">11,70&nbsp;€</td><td class="right" data-total>0,00&nbsp;€</td>
-          </tr>
-          <tr data-price="0.63">
-            <td>Pásiky na pranie – vzorka</td>
-            <td><input class="p-note" type="text" style="width:100%"></td>
-            <td><input type="number" min="0" step="1"></td>
-            <td class="right">0,63&nbsp;€</td><td class="right" data-total>0,00&nbsp;€</td>
-          </tr>
-          <tr data-price="2.84">
-            <td>Pásiky na pranie – 10 ks</td>
-            <td><input class="p-note" type="text" style="width:100%"></td>
-            <td><input type="number" min="0" step="1"></td>
-            <td class="right">2,84&nbsp;€</td><td class="right" data-total>0,00&nbsp;€</td>
-          </tr>
-          <tr data-price="8.84">
-            <td>Pásky na pranie – 50 ks</td>
-            <td><input class="p-note" type="text" style="width:100%"></td>
-            <td><input type="number" min="0" step="1"></td>
-            <td class="right">8,84&nbsp;€</td><td class="right" data-total>0,00&nbsp;€</td>
-          </tr>
-          <tr data-price="13.21">
-            <td>Pásiky na pranie – 100 ks</td>
-            <td><input class="p-note" type="text" style="width:100%"></td>
-            <td><input type="number" min="0" step="1"></td>
-            <td class="right">13,21&nbsp;€</td><td class="right" data-total>0,00&nbsp;€</td>
-          </tr>
-          <tr data-price="3.69">
-            <td>Univerzálny čistič 250 ml (Novinka)</td>
-            <td><input class="p-note" type="text" style="width:100%"></td>
-            <td><input type="number" min="0" step="1"></td>
-            <td class="right">3,69&nbsp;€</td><td class="right" data-total>0,00&nbsp;€</td>
-          </tr>
-          <tr data-price="5.28">
-            <td>Univerzálny čistič 500 ml (Novinka)</td>
-            <td><input class="p-note" type="text" style="width:100%"></td>
-            <td><input type="number" min="0" step="1"></td>
-            <td class="right">5,28&nbsp;€</td><td class="right" data-total>0,00&nbsp;€</td>
-          </tr>
-          <tr data-price="8.27" data-discount="bogo50">
-            <td>Vonná sviečka 230 g <span class="badge">Zľava 50 % na 2. kus</span></td>
-            <td><input class="p-note" type="text" style="width:100%"></td>
-            <td><input type="number" min="0" step="1"></td>
-            <td class="right">8,27&nbsp;€</td><td class="right" data-total>0,00&nbsp;€</td>
-          </tr>
-          <tr data-price="10.95" data-discount="bogo50">
-            <td>Vonný difuzér s tyčinkami 100 ml <span class="badge">Zľava 50 % na 2. kus</span></td>
-            <td><input class="p-note" type="text" style="width:100%"></td>
-            <td><input type="number" min="0" step="1"></td>
-            <td class="right">10,95&nbsp;€</td><td class="right" data-total>0,00&nbsp;€</td>
-          </tr>
-          <tr data-price="3.43">
-            <td>Voňavá visačka</td>
-            <td><input class="p-note" type="text" style="width:100%"></td>
-            <td><input type="number" min="0" step="1"></td>
-            <td class="right">3,43&nbsp;€</td><td class="right" data-total>0,00&nbsp;€</td>
-          </tr>
-          <tr data-price="2.70">
-            <td>Voňavá karta</td>
-            <td><input class="p-note" type="text" style="width:100%"></td>
-            <td><input type="number" min="0" step="1"></td>
-            <td class="right">2,70&nbsp;€</td><td class="right" data-total>0,00&nbsp;€</td>
-          </tr>
-          <tr data-price="7.35">
-            <td>Voňavá karta – trojbalenie</td>
-            <td><input class="p-note" type="text" style="width:100%"></td>
-            <td><input type="number" min="0" step="1"></td>
-            <td class="right">7,35&nbsp;€</td><td class="right" data-total>0,00&nbsp;€</td>
-          </tr>
-          <tr data-price="12.07">
-            <td>Parfum 50 ml</td>
-            <td><input class="p-note" type="text" style="width:100%"></td>
-            <td><input type="number" min="0" step="1"></td>
-            <td class="right">12,07&nbsp;€</td><td class="right" data-total>0,00&nbsp;€</td>
-          </tr>
-          <tr data-price="6.34">
-            <td>Parfum 10 ml (roll-on)</td>
-            <td><input class="p-note" type="text" style="width:100%"></td>
-            <td><input type="number" min="0" step="1"></td>
-            <td class="right">6,34&nbsp;€</td><td class="right" data-total>0,00&nbsp;€</td>
-          </tr>
-          <tr data-price="9.77">
-            <td>Vôňa do bytu 50 ml</td>
-            <td><input class="p-note" type="text" style="width:100%"></td>
-            <td><input type="number" min="0" step="1"></td>
-            <td class="right">9,77&nbsp;€</td><td class="right" data-total>0,00&nbsp;€</td>
-          </tr>
-          <tr data-price="0.48">
-            <td>Pena do kúpeľa – vzorka 10 ml</td>
-            <td><input class="p-note" type="text" style="width:100%"></td>
-            <td><input type="number" min="0" step="1"></td>
-            <td class="right">0,48&nbsp;€</td><td class="right" data-total>0,00&nbsp;€</td>
-          </tr>
-          <tr data-price="6.50">
-            <td>Pena do kúpeľa 250 ml</td>
-            <td><input class="p-note" type="text" style="width:100%"></td>
-            <td><input type="number" min="0" step="1"></td>
-            <td class="right">6,50&nbsp;€</td><td class="right" data-total>0,00&nbsp;€</td>
-          </tr>
-          <tr data-price="5.28">
-            <td>Multifunkčné párovače ponožiek – 10 ks</td>
-            <td><input class="p-note" type="text" style="width:100%"></td>
-            <td><input type="number" min="0" step="1"></td>
-            <td class="right">5,28&nbsp;€</td><td class="right" data-total>0,00&nbsp;€</td>
-          </tr>
+        <tbody id="productTableBody">
+          <!-- JavaScript vygeneruje riadky -->
         </tbody>
         <tfoot>
           <tr><td colspan="4" class="right"><strong>Spolu bez DPH</strong></td><td class="right" id="sum_wo">0,00&nbsp;€</td></tr>
@@ -293,7 +142,7 @@
           <tr><td colspan="4" class="right"><strong>Spolu s DPH</strong></td><td class="right" id="sum_w">0,00&nbsp;€</td></tr>
         </tfoot>
       </table>
-      <div class="note">Pozn.: Riadky „DARČEK“ sa automaticky dorovnávajú k množstvu 500 ml a 250 ml parfumu (cena 0 €). Zľava 50% na každý druhý kus sa uplatňuje pri sviečkach a difuzéroch.</div>
+      <div class="note">Pozn.: Riadky „DARČEK" sa automaticky dorovnávajú k množstvu 500 ml a 250 ml parfumu (cena 0 €). Zľava 50% na každý druhý kus sa uplatňuje pri sviečkach a difuzéroch.</div>
     </div>
    
     <div class="card">
@@ -321,26 +170,388 @@
 <script>
 function fmt(n){ return n.toLocaleString('sk-SK',{minimumFractionDigits:2,maximumFractionDigits:2}) + '\u00A0€'; }
 
-// prepočet súm + dorovnanie darčekov + zľavy
-function recalc(){
-  // darček k 500ml parfumu
-  const q500 = document.getElementById('qty500');
-  const qBonus = document.getElementById('qtyBonus');
-  if (q500 && qBonus) { qBonus.value = q500.value; }
-  
-  // darček k 250ml parfumu
-  const q250 = document.getElementById('qty250');
-  const qBonusStrips = document.getElementById('qtyBonusStrips');
-  if (q250 && qBonusStrips) { qBonusStrips.value = q250.value; }
+// Databáza všetkých produktov
+const products = [
+  {id: 'p1', name: 'Puella parfumov na pranie – Skúšobný set (6 ks z každej vône)', price: 1.62, hasVariants: false},
+  {id: 'p2', name: 'Puella parfum na pranie 50 ml', price: 4.47, hasVariants: true},
+  {id: 'p3', name: 'Puella parfum na pranie 250 ml', price: 13.68, hasVariants: true, badge: 'darček: Pásiky 10 ks', isGiftTrigger: true, giftTriggerId: 'p3'},
+  {id: 'p3bonus', name: 'Pásiky na pranie – 10 ks – DARČEK k 250 ml parfumu', price: 0, isGift: true, giftFor: 'p3'},
+  {id: 'p4', name: 'Puella parfum na pranie 500 ml', price: 19.90, hasVariants: true, badge: 'darček: Prací gél 1000 ml', isGiftTrigger: true, giftTriggerId: 'p4'},
+  {id: 'p4bonus', name: 'Prací gél 1000 ml – DARČEK k 500 ml parfumu', price: 0, isGift: true, giftFor: 'p4', hasGiftVariants: true, giftVariants: ['Univerzálny', 'Na biele oblečenie', 'Na čierne oblečenie']},
+  {id: 'p5', name: 'Darčekové balenie Puella vzoriek – 12 ks', price: 4.29, hasVariants: false},
+  {id: 'p6', name: 'Darčekové balenie Puella vzoriek – 18 ks', price: 6.39, hasVariants: false},
+  {id: 'p7', name: 'Prací gél – jednorazová vzorka', price: 0.63, hasVariants: false},
+  {id: 'p8', name: 'Prací gél 250 ml (univerzálny/čierna/biela)', price: 4.75, hasVariants: false},
+  {id: 'p9', name: 'Prací gél 500 ml (univerzálny/čierna/biela)', price: 7.31, hasVariants: false},
+  {id: 'p10', name: 'Prací gél 1000 ml (univerzálny/čierna/biela)', price: 11.70, hasVariants: false},
+  {id: 'p11', name: 'Pásiky na pranie – vzorka', price: 0.63, hasVariants: false},
+  {id: 'p12', name: 'Pásiky na pranie – 10 ks', price: 2.84, hasVariants: false},
+  {id: 'p13', name: 'Pásky na pranie – 50 ks', price: 8.84, hasVariants: false},
+  {id: 'p14', name: 'Pásiky na pranie – 100 ks', price: 13.21, hasVariants: false},
+  {id: 'p15', name: 'Univerzálny čistič 250 ml (Novinka)', price: 3.69, hasVariants: true},
+  {id: 'p16', name: 'Univerzálny čistič 500 ml (Novinka)', price: 5.28, hasVariants: true},
+  {id: 'p17', name: 'Vonná sviečka 230 g', price: 8.27, hasVariants: true, discount: 'bogo50', badge: 'Zľava 50 % na 2. kus'},
+  {id: 'p18', name: 'Vonný difuzér s tyčinkami 100 ml', price: 10.95, hasVariants: true, discount: 'bogo50', badge: 'Zľava 50 % na 2. kus'},
+  {id: 'p19', name: 'Voňavá visačka', price: 3.43, hasVariants: true},
+  {id: 'p20', name: 'Voňavá karta', price: 2.70, hasVariants: true},
+  {id: 'p21', name: 'Voňavá karta – trojbalenie', price: 7.35, hasVariants: true},
+  {id: 'p22', name: 'Parfum 50 ml', price: 12.07, hasVariants: true},
+  {id: 'p23', name: 'Parfum 10 ml (roll-on)', price: 6.34, hasVariants: true},
+  {id: 'p24', name: 'Vôňa do bytu 50 ml', price: 9.77, hasVariants: true},
+  {id: 'p26', name: 'Pena do kúpeľa 250 ml', price: 6.50, hasVariants: true}
+];
 
+const variantNames = ['Double', 'Frayo', 'Emija', 'JaLu', 'Quenka', 'First Dream'];
+const variantsData = {};
+const giftVariantsData = {};
+
+// Inicializácia dát variantov
+products.forEach(p => {
+  if (p.hasVariants) {
+    variantsData[p.id] = {};
+    variantNames.forEach(v => {
+      variantsData[p.id][v.toLowerCase()] = 0;
+    });
+  }
+  
+  // Inicializácia darčekových variantov
+  if (p.isGift && p.hasGiftVariants) {
+    giftVariantsData[p.id] = {};
+    p.giftVariants.forEach(gv => {
+      giftVariantsData[p.id][gv] = 0;
+    });
+  }
+});
+
+// Generovanie HTML tabuľky
+function generateTable() {
+  const tbody = document.getElementById('productTableBody');
+  tbody.innerHTML = '';
+  
+  products.forEach(p => {
+    if (p.hasVariants) {
+      // Produkt s variantmi
+      const tr = document.createElement('tr');
+      tr.id = `product-${p.id}`;
+      tr.className = 'product-with-variants';
+      tr.dataset.price = p.price;
+      if (p.discount) tr.dataset.discount = p.discount;
+      if (p.isGiftTrigger) tr.dataset.isGiftTrigger = 'true';
+      if (p.giftTriggerId) tr.dataset.giftTriggerId = p.giftTriggerId;
+      
+      const badgeHtml = p.badge ? ` <span class="badge">${p.badge}</span>` : '';
+      
+      tr.innerHTML = `
+        <td colspan="5">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0">
+            <span><strong>${p.name}</strong>${badgeHtml} <span class="expand-icon">▼</span></span>
+            <div style="display:flex;gap:20px;align-items:center">
+              <span style="color:var(--muted);font-size:13px">${fmt(p.price)} / ks</span>
+              <span id="total-${p.id}" style="font-weight:600;color:var(--pink);min-width:60px;text-align:right">0 ks</span>
+              <span id="sum-${p.id}" style="font-weight:600;min-width:80px;text-align:right">${fmt(0)}</span>
+            </div>
+          </div>
+          <div class="variants-container" id="variants-${p.id}">
+            ${variantNames.map(vName => {
+              const vId = vName.toLowerCase();
+              return `
+                <div class="variant-row">
+                  <span class="variant-name">${vName}</span>
+                  <div class="variant-controls">
+                    <button class="variant-btn" onclick="changeVariant('${p.id}', '${vId}', -1)" type="button">−</button>
+                    <input type="number" class="variant-input" id="var-${p.id}-${vId}" value="0" min="0" onchange="updateVariantFromInput('${p.id}', '${vId}')">
+                    <button class="variant-btn" onclick="changeVariant('${p.id}', '${vId}', 1)" type="button">+</button>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </td>
+      `;
+      tbody.appendChild(tr);
+      
+    } else if (p.isGift && p.hasGiftVariants) {
+      // Darček s variantmi
+      const tr = document.createElement('tr');
+      tr.id = `product-${p.id}`;
+      tr.className = 'product-with-variants';
+      tr.dataset.price = p.price;
+      tr.dataset.isGift = 'true';
+      tr.dataset.giftFor = p.giftFor;
+      
+      const badgeHtml = p.badge ? ` <span class="badge">${p.badge}</span>` : '';
+      
+      tr.innerHTML = `
+        <td colspan="5">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0">
+            <span><strong>${p.name}</strong>${badgeHtml} <span class="expand-icon">▼</span></span>
+            <div style="display:flex;gap:20px;align-items:center">
+              <span style="color:var(--muted);font-size:13px">${fmt(p.price)} / ks</span>
+              <span id="total-${p.id}" style="font-weight:600;color:var(--pink);min-width:60px;text-align:right">0 ks</span>
+              <span id="sum-${p.id}" style="font-weight:600;min-width:80px;text-align:right">${fmt(0)}</span>
+            </div>
+          </div>
+          <div class="variants-container" id="variants-${p.id}">
+            ${p.giftVariants.map(gvName => {
+              return `
+                <div class="variant-row">
+                  <span class="variant-name">${gvName}</span>
+                  <div class="variant-controls">
+                    <button class="variant-btn" onclick="changeGiftVariant('${p.id}', '${gvName}', -1)" type="button">−</button>
+                    <input type="number" class="variant-input" id="giftvar-${p.id}-${gvName}" value="0" min="0" readonly style="background:#f9f9f9">
+                    <button class="variant-btn" onclick="changeGiftVariant('${p.id}', '${gvName}', 1)" type="button">+</button>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </td>
+      `;
+      tbody.appendChild(tr);
+      
+    } else if (p.isGift && !p.hasGiftVariants) {
+      // Darček bez variantov (pásiky)
+      const tr = document.createElement('tr');
+      tr.id = `product-${p.id}`;
+      tr.dataset.price = p.price;
+      tr.dataset.isGift = 'true';
+      tr.dataset.giftFor = p.giftFor;
+      
+      const badgeHtml = p.badge ? ` <span class="badge">${p.badge}</span>` : '';
+      
+      tr.innerHTML = `
+        <td>${p.name}${badgeHtml}</td>
+        <td><input class="p-note" type="text" style="width:100%" readonly></td>
+        <td><input type="number" min="0" step="1" id="gift-qty-${p.id}" readonly style="background:#f9f9f9"></td>
+        <td class="right">${fmt(p.price)}</td>
+        <td class="right" data-total>${fmt(0)}</td>
+      `;
+      tbody.appendChild(tr);
+      
+    } else {
+      // Štandardný produkt bez variantov
+      const tr = document.createElement('tr');
+      tr.id = `product-${p.id}`;
+      tr.dataset.price = p.price;
+      if (p.discount) tr.dataset.discount = p.discount;
+      
+      const badgeHtml = p.badge ? ` <span class="badge">${p.badge}</span>` : '';
+      
+      tr.innerHTML = `
+        <td>${p.name}${badgeHtml}</td>
+        <td><input class="p-note" type="text" style="width:100%"></td>
+        <td><input type="number" min="0" step="1"></td>
+        <td class="right">${fmt(p.price)}</td>
+        <td class="right" data-total>${fmt(0)}</td>
+      `;
+      tbody.appendChild(tr);
+    }
+  });
+  
+  // Pridanie event listenerov
+  document.querySelectorAll('.product-with-variants').forEach(row => {
+    row.addEventListener('click', function(e) {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON') return;
+      
+      const productId = this.id.replace('product-', '');
+      const container = document.getElementById('variants-' + productId);
+      
+      if (container) {
+        container.classList.toggle('open');
+        this.classList.toggle('expanded');
+      }
+    });
+  });
+  
+  document.querySelectorAll('#tbl input[type=number]:not(.variant-input)').forEach(i => {
+    i.addEventListener('input', recalc);
+  });
+}
+
+// Zmena množstva variantu
+function changeVariant(productId, variantName, delta) {
+  const currentVal = variantsData[productId][variantName];
+  const newVal = Math.max(0, currentVal + delta);
+  variantsData[productId][variantName] = newVal;
+  
+  const input = document.getElementById(`var-${productId}-${variantName}`);
+  if (input) input.value = newVal;
+  
+  updateProductTotal(productId);
+  updateGifts();
+  recalc();
+}
+
+// Aktualizácia z inputu
+function updateVariantFromInput(productId, variantName) {
+  const input = document.getElementById(`var-${productId}-${variantName}`);
+  const val = Math.max(0, parseInt(input.value) || 0);
+  variantsData[productId][variantName] = val;
+  input.value = val;
+  
+  updateProductTotal(productId);
+  updateGifts();
+  recalc();
+}
+
+// Zmena množstva darčekového variantu
+function changeGiftVariant(productId, giftVariantName, delta) {
+  const currentVal = giftVariantsData[productId][giftVariantName];
+  const newVal = Math.max(0, currentVal + delta);
+  giftVariantsData[productId][giftVariantName] = newVal;
+  
+  const input = document.getElementById(`giftvar-${productId}-${giftVariantName}`);
+  if (input) input.value = newVal;
+  
+  updateGiftProductTotal(productId);
+  recalc();
+}
+
+// Aktualizácia darčekov podľa hlavných produktov
+function updateGifts() {
+  // Darček pásiky k 250ml parfumu
+  const p3Total = getTotalForProduct('p3');
+  const giftQtyP3 = document.getElementById('gift-qty-p3bonus');
+  if (giftQtyP3) giftQtyP3.value = p3Total;
+  
+  // Darček prací gél k 500ml parfumu - rozdelenie podľa variantov
+  const p4Total = getTotalForProduct('p4');
+  if (variantsData['p4']) {
+    // Rozdeliť proporcionálne podľa variantov 500ml parfumu
+    const p4Variants = variantsData['p4'];
+    const totalP4 = Object.values(p4Variants).reduce((sum, val) => sum + val, 0);
+    
+    if (totalP4 > 0 && giftVariantsData['p4bonus']) {
+      // Jednoduché rozdelenie - každý variant 500ml dostane rovnaký variant gélu
+      Object.keys(p4Variants).forEach(vKey => {
+        const qty = p4Variants[vKey];
+        // Mapovanie variantov na typy gélu
+        if (qty > 0) {
+          // Pre jednoduchosť: všetky darčeky pôjdu do "Univerzálny"
+          // Užívateľ si môže manuálne upraviť distribúciu
+        }
+      });
+      
+      // Nastaviť celkový počet darčekov
+      const giftVariants = giftVariantsData['p4bonus'];
+      let currentGiftTotal = Object.values(giftVariants).reduce((sum, val) => sum + val, 0);
+      
+      // Ak je rozdiel, pridaj do Univerzálny
+      if (currentGiftTotal < p4Total) {
+        giftVariants['Univerzálny'] += (p4Total - currentGiftTotal);
+        const input = document.getElementById('giftvar-p4bonus-Univerzálny');
+        if (input) input.value = giftVariants['Univerzálny'];
+      } else if (currentGiftTotal > p4Total) {
+        // Odstráň prebytok z Univerzálny
+        const diff = currentGiftTotal - p4Total;
+        giftVariants['Univerzálny'] = Math.max(0, giftVariants['Univerzálny'] - diff);
+        const input = document.getElementById('giftvar-p4bonus-Univerzálny');
+        if (input) input.value = giftVariants['Univerzálny'];
+      }
+    }
+    
+    updateGiftProductTotal('p4bonus');
+  }
+}
+
+// Získať celkový počet kusov produktu
+function getTotalForProduct(productId) {
+  if (!variantsData[productId]) return 0;
+  return Object.values(variantsData[productId]).reduce((sum, val) => sum + val, 0);
+}
+
+// Aktualizácia celkového počtu darčekového produktu
+function updateGiftProductTotal(productId) {
+  let total = 0;
+  
+  if (giftVariantsData[productId]) {
+    total = Object.values(giftVariantsData[productId]).reduce((sum, val) => sum + val, 0);
+  }
+  
+  const totalEl = document.getElementById(`total-${productId}`);
+  if (totalEl) totalEl.textContent = total + ' ks';
+  
+  const product = products.find(p => p.id === productId);
+  const sum = total * product.price;
+  
+  const sumEl = document.getElementById(`sum-${productId}`);
+  if (sumEl) sumEl.textContent = fmt(sum);
+}
+
+// Aktualizácia celkového počtu a sumy produktu s variantmi
+function updateProductTotal(productId) {
+  let total = 0;
+  Object.values(variantsData[productId]).forEach(qty => {
+    total += qty;
+  });
+  
+  const totalEl = document.getElementById(`total-${productId}`);
+  if (totalEl) totalEl.textContent = total + ' ks';
+  
+  const product = products.find(p => p.id === productId);
   let sum = 0;
-  document.querySelectorAll('#tbl tbody tr').forEach(tr=>{
+  
+  if (product.discount === 'bogo50') {
+    const fullPriceItems = Math.ceil(total / 2);
+    const halfPriceItems = Math.floor(total / 2);
+    sum = (fullPriceItems * product.price) + (halfPriceItems * product.price * 0.5);
+  } else {
+    sum = total * product.price;
+  }
+  
+  const sumEl = document.getElementById(`sum-${productId}`);
+  if (sumEl) sumEl.textContent = fmt(sum);
+}
+
+// Prepočet celkových súm
+function recalc(){
+  let sum = 0;
+  
+  // Produkty s variantmi
+  products.forEach(p => {
+    if (p.hasVariants) {
+      let productTotal = 0;
+      Object.values(variantsData[p.id]).forEach(qty => {
+        productTotal += qty;
+      });
+      
+      if (p.discount === 'bogo50') {
+        const fullPriceItems = Math.ceil(productTotal / 2);
+        const halfPriceItems = Math.floor(productTotal / 2);
+        sum += (fullPriceItems * p.price) + (halfPriceItems * p.price * 0.5);
+      } else {
+        sum += productTotal * p.price;
+      }
+    }
+  });
+  
+  // Darčekové produkty s variantmi (gél)
+  products.forEach(p => {
+    if (p.isGift && p.hasGiftVariants && giftVariantsData[p.id]) {
+      let giftTotal = 0;
+      Object.values(giftVariantsData[p.id]).forEach(qty => {
+        giftTotal += qty;
+      });
+      sum += giftTotal * p.price; // price je 0 pre darčeky
+    }
+  });
+  
+  // Darčekové produkty bez variantov (pásiky)
+  products.forEach(p => {
+    if (p.isGift && !p.hasGiftVariants) {
+      const giftInput = document.getElementById(`gift-qty-${p.id}`);
+      const qty = giftInput ? (parseInt(giftInput.value) || 0) : 0;
+      sum += qty * p.price; // price je 0 pre darčeky
+    }
+  });
+  
+  // Štandardné produkty
+  document.querySelectorAll('#tbl tbody tr:not(.product-with-variants):not([data-is-gift])').forEach(tr=>{
     const price = parseFloat(tr.dataset.price || '0');
     const raw = (tr.querySelector('input[type=number]')?.value || '').trim();
     const qty = raw === '' ? 0 : Number(raw);
     let total;
 
-    // Zľava 50% na každý druhý kus (sviečky, difuzéry)
     if (tr.dataset.discount === 'bogo50') {
         const fullPriceItems = Math.ceil(qty / 2);
         const halfPriceItems = Math.floor(qty / 2);
@@ -359,8 +570,6 @@ function recalc(){
   document.getElementById('sum_vat').textContent = fmt(vat);
   document.getElementById('sum_w').textContent   = fmt(sum + vat);
 }
-document.querySelectorAll('#tbl input[type=number]').forEach(i=>i.addEventListener('input', recalc));
-recalc();
 
 function getKomisionarText(){
   const v = id => (document.getElementById(id)?.value || '').trim();
@@ -378,19 +587,66 @@ function getKomisionarText(){
   return parts.join(' | ');
 }
 
-// Formspree: priprav „message“ pred submitom
+// Formspree: priprav „message" pred submitom
 document.getElementById('orderForm').addEventListener('submit', function(e){
-  const rows = [...document.querySelectorAll('#tbl tbody tr')];
-  const items = rows.map(tr=>{
+  const items = [];
+  
+  // Produkty s variantmi
+  products.forEach(p => {
+    if (p.hasVariants) {
+      variantNames.forEach(vName => {
+        const vId = vName.toLowerCase();
+        const qty = variantsData[p.id][vId];
+        if (qty > 0) {
+          let total;
+          if (p.discount === 'bogo50') {
+            const fullPriceItems = Math.ceil(qty / 2);
+            const halfPriceItems = Math.floor(qty / 2);
+            total = (fullPriceItems * p.price) + (halfPriceItems * p.price * 0.5);
+            items.push(`- ${p.name} - ${vName} | ks: ${qty} | cena/ks: ${fmt(p.price)} (so zľavou) | spolu: ${fmt(total)}`);
+          } else {
+            total = qty * p.price;
+            items.push(`- ${p.name} - ${vName} | ks: ${qty} | cena/ks: ${fmt(p.price)} | spolu: ${fmt(total)}`);
+          }
+        }
+      });
+    }
+  });
+  
+  // Darčekové produkty s variantmi (géli)
+  products.forEach(p => {
+    if (p.isGift && p.hasGiftVariants && giftVariantsData[p.id]) {
+      p.giftVariants.forEach(gvName => {
+        const qty = giftVariantsData[p.id][gvName];
+        if (qty > 0) {
+          items.push(`- ${p.name} - ${gvName} | ks: ${qty} | cena/ks: ${fmt(p.price)} | spolu: ${fmt(0)}`);
+        }
+      });
+    }
+  });
+  
+  // Darčekové produkty bez variantov (pásiky)
+  products.forEach(p => {
+    if (p.isGift && !p.hasGiftVariants) {
+      const giftInput = document.getElementById(`gift-qty-${p.id}`);
+      const qty = giftInput ? (parseInt(giftInput.value) || 0) : 0;
+      if (qty > 0) {
+        items.push(`- ${p.name} | ks: ${qty} | cena/ks: ${fmt(p.price)} | spolu: ${fmt(0)}`);
+      }
+    }
+  });
+  
+  // Štandardné produkty
+  const rows = [...document.querySelectorAll('#tbl tbody tr:not(.product-with-variants):not([data-is-gift])')];
+  rows.forEach(tr=>{
     const name = tr.children[0].innerText.trim();
     const note = (tr.querySelector('.p-note')?.value || '').trim();
     const raw = (tr.querySelector('input[type=number]')?.value || '').trim();
     const qty = raw === '' ? 0 : Number(raw);
     const price = parseFloat(tr.dataset.price || '0');
-    if(!qty) return null;
+    if(!qty) return;
     const noteStr = note ? ` | pozn.: ${note}` : '';
     
-    // Zohľadnenie zľavy v texte e-mailu
     let total;
     let pricePerPieceStr = `cena/ks: ${fmt(price)}`;
     if (tr.dataset.discount === 'bogo50') {
@@ -402,8 +658,8 @@ document.getElementById('orderForm').addEventListener('submit', function(e){
         total = price * qty;
     }
     
-    return `- ${name}${noteStr} | ks: ${qty} | ${pricePerPieceStr} | spolu: ${fmt(total)}`;
-  }).filter(Boolean);
+    items.push(`- ${name}${noteStr} | ks: ${qty} | ${pricePerPieceStr} | spolu: ${fmt(total)}`);
+  });
 
   if(items.length === 0){
     e.preventDefault();
@@ -433,6 +689,10 @@ document.getElementById('orderForm').addEventListener('submit', function(e){
 
   document.getElementById('orderMessage').value = lines.join('\n');
 });
+
+// Inicializácia po načítaní stránky
+generateTable();
+recalc();
 </script>
 </body>
 </html>
