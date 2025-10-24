@@ -211,6 +211,24 @@
       </table>
       <div class="note">Pozn.: Riadky „DARČEK" sa automaticky dorovnávajú k množstvu 500 ml a 250 ml parfumu (cena 0 €). Zľava 50% na každý druhý kus sa uplatňuje pri sviečkach a difuzéroch <strong>v rámci jedného variantu</strong>.</div>
     </div>
+
+    <div class="card">
+      <div class="label">Spôsob platby</div>
+      <div style="margin-top:8px">
+        <label style="display:flex;align-items:center;padding:8px;cursor:pointer;border:1px solid var(--border);border-radius:8px;margin:6px 0;background:#fff">
+          <input type="radio" name="paymentMethod" value="Dobierkou" id="payment_dob" style="width:auto;margin-right:10px" checked>
+          <span style="font-weight:500">Dobierkou</span>
+        </label>
+        <label style="display:flex;align-items:center;padding:8px;cursor:pointer;border:1px solid var(--border);border-radius:8px;margin:6px 0;background:#fff">
+          <input type="radio" name="paymentMethod" value="Online bankový prevod" id="payment_bank" style="width:auto;margin-right:10px">
+          <span style="font-weight:500">Online bankový prevod</span>
+        </label>
+        <label style="display:flex;align-items:center;padding:8px;cursor:pointer;border:1px solid var(--border);border-radius:8px;margin:6px 0;background:#fff">
+          <input type="radio" name="paymentMethod" value="Online platba kartou" id="payment_card" style="width:auto;margin-right:10px">
+          <span style="font-weight:500">Online platba kartou</span>
+        </label>
+      </div>
+    </div>
    
     <div class="card">
       <div class="label">Odoslanie objednávky e-mailom</div>
@@ -762,11 +780,15 @@ document.getElementById('orderForm').addEventListener('submit', function(e){
   const sumW  = document.getElementById('sum_w')?.innerText || '';
   const hdrDate = document.getElementById('hdrDate')?.value || '';
   const komisionar = getKomisionarText();
+  
+  // Získať zvolený spôsob platby
+  const paymentMethod = document.querySelector('input[name="paymentMethod"]:checked')?.value || 'Nezvolené';
 
   const lines = [];
   lines.push('OBJEDNÁVKA');
   lines.push(`Dátum: ${hdrDate || '(nevyplnené)'}`);
   if(komisionar) lines.push(`Odberateľ: ${komisionar}`);
+  lines.push(`Spôsob platby: ${paymentMethod}`);
   lines.push('');
   lines.push('Položky:');
   lines.push(items.join('\n'));
@@ -783,6 +805,13 @@ document.getElementById('orderForm').addEventListener('submit', function(e){
 // Inicializácia po načítaní stránky
 generateTable();
 recalc();
+
+// Nastaviť dnešný dátum automaticky
+const today = new Date();
+const year = today.getFullYear();
+const month = String(today.getMonth() + 1).padStart(2, '0');
+const day = String(today.getDate()).padStart(2, '0');
+document.getElementById('hdrDate').value = `${year}-${month}-${day}`;
 </script>
 </body>
 </html>
