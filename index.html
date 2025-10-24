@@ -264,6 +264,14 @@ const products = [
 ];
 
 const variantNames = ['Double', 'Frayo', 'Emija', 'JaLu', 'Quenka', 'First Dream'];
+const variantColors = {
+  'Double': '#22c55e',
+  'Frayo': '#6b7280',
+  'Emija': '#3b82f6',
+  'JaLu': '#eab308',
+  'Quenka': '#ef4444',
+  'First Dream': '#ec4899'
+};
 const variantsData = {};
 const giftVariantsData = {};
 
@@ -314,9 +322,10 @@ function generateTable() {
           <div class="variants-container" id="variants-${p.id}">
             ${variantNames.map(vName => {
               const vId = vName.toLowerCase();
+              const color = variantColors[vName];
               return `
                 <div class="variant-row">
-                  <span class="variant-name">${vName}</span>
+                  <span class="variant-name"><span style="display:inline-block;width:16px;height:16px;background:${color};border-radius:3px;margin-right:8px;vertical-align:middle;border:1px solid rgba(0,0,0,0.1)"></span>${vName}</span>
                   <div class="variant-controls">
                     <button class="variant-btn" onclick="changeVariant('${p.id}', '${vId}', -1)" type="button">−</button>
                     <input type="number" class="variant-input" id="var-${p.id}-${vId}" value="0" min="0" onchange="updateVariantFromInput('${p.id}', '${vId}')">
