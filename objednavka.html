@@ -59,6 +59,69 @@
     .variant-btn{display:none}
     .gift-warning{display:none}
   }
+
+  /* Mobilná responzivita */
+  @media (max-width: 768px) {
+    body{font-size:14px}
+    .wrap{margin:5px;border-radius:8px}
+    header{padding:10px 12px}
+    h1{font-size:18px}
+    .section{padding:5px 10px 10px}
+    .card{padding:8px 10px;margin:8px 0;border-radius:8px}
+    .grid{grid-template-columns:1fr;gap:8px}
+    .field{padding:8px;font-size:13px}
+    .label{font-size:11px}
+    input,textarea{font-size:14px;padding:6px 8px}
+    .note{font-size:11px}
+    .badge{font-size:10px;padding:1px 6px;display:block;margin:4px 0 0 0;width:fit-content}
+    
+    /* Skryť tabuľku header a footer na mobile */
+    table thead{display:none}
+    table tfoot{display:block;width:100%}
+    table tfoot tr{display:flex;justify-content:space-between;padding:8px;background:#fff;border:none;border-top:2px solid var(--pink);margin-top:10px}
+    table tfoot td{border:none;padding:4px;font-size:13px}
+    
+    /* Každý riadok = karta */
+    table tbody{display:block}
+    table tbody tr{display:block;margin:10px 0;padding:12px;background:#fff;border:1px solid var(--border);border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,.05)}
+    table tbody tr:nth-child(even){background:#fff}
+    table tbody td{display:block;border:none;padding:4px 0;text-align:left!important}
+    
+    /* Štandardné produkty bez variantov */
+    table tbody tr:not(.product-with-variants) td:first-child{font-weight:600;font-size:15px;margin-bottom:8px;color:var(--text)}
+    table tbody tr:not(.product-with-variants) td:nth-child(2){margin:6px 0}
+    table tbody tr:not(.product-with-variants) td:nth-child(2):before{content:"Poznámka: ";font-weight:600;font-size:12px;color:var(--muted)}
+    table tbody tr:not(.product-with-variants) td:nth-child(3):before{content:"Počet ks: ";font-weight:600;font-size:12px;color:var(--muted);margin-right:4px}
+    table tbody tr:not(.product-with-variants) td:nth-child(4):before{content:"Cena: ";font-weight:600;font-size:12px;color:var(--muted);margin-right:4px}
+    table tbody tr:not(.product-with-variants) td:nth-child(5):before{content:"Spolu: ";font-weight:600;font-size:14px;color:var(--pink);margin-right:4px}
+    table tbody tr:not(.product-with-variants) td:nth-child(5){font-weight:700;font-size:16px;color:var(--pink);margin-top:8px}
+    table tbody tr:not(.product-with-variants) input[type="number"]{width:100px;font-size:16px;padding:8px}
+    table tbody tr:not(.product-with-variants) .p-note{width:100%!important;font-size:14px}
+    
+    /* Produkty s variantmi */
+    .product-with-variants td{padding:0!important}
+    .product-with-variants>td>div:first-child{flex-direction:column;align-items:stretch!important;gap:10px;padding:0}
+    .product-with-variants>td>div:first-child>span{font-size:15px;font-weight:600}
+    .product-with-variants>td>div:first-child>div{width:100%;justify-content:space-between;flex-wrap:wrap;gap:6px}
+    .product-with-variants>td>div:first-child>div>span{font-size:13px}
+    .product-with-variants>td>div:first-child>div>span:last-child{font-size:16px}
+    
+    /* Varianty */
+    .variants-container{padding:10px 0}
+    .variant-row{flex-direction:row;align-items:center;padding:10px;margin:8px 0}
+    .variant-name{font-size:14px;flex:1}
+    .variant-controls{gap:8px}
+    .variant-btn{width:36px;height:36px;font-size:18px}
+    .variant-input{width:70px;font-size:16px;padding:8px}
+    
+    .gift-warning{font-size:12px;padding:8px;margin:10px 0}
+    
+    /* Tlačidlá */
+    .btn{width:100%;margin-top:10px;padding:12px;font-size:15px}
+    .inline{flex-direction:column;gap:0}
+    
+    .print-hint{font-size:11px;padding:8px}
+  }
 </style>
 </head>
 <body>
