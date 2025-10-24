@@ -60,39 +60,39 @@
     .gift-warning{display:none}
   }
 
-/* Mobilná responzivita */
-@media (max-width: 768px) {
-  .wrap{margin:10px;border-radius:12px}
-  header{padding:12px 16px}
-  h1{font-size:20px}
-  .section{padding:8px 16px 16px}
-  .card{padding:10px 12px}
-  .grid{grid-template-columns:1fr;gap:10px}
-  
-  /* Tabuľka na mobile */
-  table{font-size:12px}
-  thead th{padding:6px;font-size:11px}
-  tbody td, tfoot td{padding:6px}
-  input[type="number"]{width:70px;font-size:13px}
-  .p-note{font-size:12px}
-  
-  /* Varianty na mobile */
-  .variant-row{flex-direction:column;align-items:flex-start;padding:10px}
-  .variant-name{margin-bottom:6px;font-size:14px}
-  .variant-controls{width:100%;justify-content:center}
-  .variant-btn{width:40px;height:40px;font-size:20px}
-  .variant-input{width:80px;font-size:15px;padding:8px}
-  
-  /* Produkty s variantmi */
-  .product-with-variants td{font-size:13px}
-  .product-with-variants>td>div:first-child{flex-direction:column;align-items:flex-start;gap:8px}
-  .product-with-variants>td>div:first-child>div{width:100%;justify-content:space-between}
-  
-  .badge{font-size:10px;padding:2px 6px}
-  .gift-warning{font-size:12px;padding:6px 10px}
-  .btn{width:100%;margin-top:8px}
-  .inline{flex-direction:column}
-}
+  /* Mobilná responzivita */
+  @media (max-width: 768px) {
+    .wrap{margin:10px;border-radius:12px}
+    header{padding:12px 16px}
+    h1{font-size:20px}
+    .section{padding:8px 16px 16px}
+    .card{padding:10px 12px}
+    .grid{grid-template-columns:1fr;gap:10px}
+    
+    /* Tabuľka na mobile */
+    table{font-size:12px}
+    thead th{padding:6px;font-size:11px}
+    tbody td, tfoot td{padding:6px}
+    input[type="number"]{width:70px;font-size:13px}
+    .p-note{font-size:12px}
+    
+    /* Varianty na mobile */
+    .variant-row{flex-direction:column;align-items:flex-start;padding:10px}
+    .variant-name{margin-bottom:6px;font-size:14px}
+    .variant-controls{width:100%;justify-content:center}
+    .variant-btn{width:40px;height:40px;font-size:20px}
+    .variant-input{width:80px;font-size:15px;padding:8px}
+    
+    /* Produkty s variantmi */
+    .product-with-variants td{font-size:13px}
+    .product-with-variants>td>div:first-child{flex-direction:column;align-items:flex-start;gap:8px}
+    .product-with-variants>td>div:first-child>div{width:100%;justify-content:space-between}
+    
+    .badge{font-size:10px;padding:2px 6px}
+    .gift-warning{font-size:12px;padding:6px 10px}
+    .btn{width:100%;margin-top:8px}
+    .inline{flex-direction:column}
+  }
 </style>
 </head>
 <body>
@@ -393,358 +393,4 @@ function generateTable() {
     });
   });
   
-  document.querySelectorAll('#tbl input[type=number]:not(.variant-input)').forEach(i => {
-    i.addEventListener('input', recalc);
-  });
-}
-
-// Zmena množstva variantu
-function changeVariant(productId, variantName, delta) {
-  const currentVal = variantsData[productId][variantName];
-  const newVal = Math.max(0, currentVal + delta);
-  variantsData[productId][variantName] = newVal;
-  
-  const input = document.getElementById(`var-${productId}-${variantName}`);
-  if (input) input.value = newVal;
-  
-  updateProductTotal(productId);
-  updateGifts();
-  recalc();
-}
-
-// Aktualizácia z inputu
-function updateVariantFromInput(productId, variantName) {
-  const input = document.getElementById(`var-${productId}-${variantName}`);
-  const val = Math.max(0, parseInt(input.value) || 0);
-  variantsData[productId][variantName] = val;
-  input.value = val;
-  
-  updateProductTotal(productId);
-  updateGifts();
-  recalc();
-}
-
-// Zmena množstva darčekového variantu
-function changeGiftVariant(productId, giftVariantName, delta) {
-  const currentVal = giftVariantsData[productId][giftVariantName];
-  const newVal = Math.max(0, currentVal + delta);
-  giftVariantsData[productId][giftVariantName] = newVal;
-  
-  const input = document.getElementById(`giftvar-${productId}-${giftVariantName}`);
-  if (input) input.value = newVal;
-  
-  updateGiftProductTotal(productId);
-  validateGiftTotal(productId);
-  recalc();
-}
-
-// Aktualizácia darčekového variantu z inputu
-function updateGiftVariantFromInput(productId, giftVariantName) {
-  const input = document.getElementById(`giftvar-${productId}-${giftVariantName}`);
-  const val = Math.max(0, parseInt(input.value) || 0);
-  giftVariantsData[productId][giftVariantName] = val;
-  input.value = val;
-  
-  updateGiftProductTotal(productId);
-  validateGiftTotal(productId);
-  recalc();
-}
-
-// Validácia darčekového celkového počtu
-function validateGiftTotal(giftProductId) {
-  const product = products.find(p => p.id === giftProductId);
-  if (!product || !product.giftForProductId) return;
-  
-  const mainProductId = product.giftForProductId;
-  const requiredTotal = getTotalForProduct(mainProductId);
-  const currentGiftTotal = Object.values(giftVariantsData[giftProductId]).reduce((sum, val) => sum + val, 0);
-  
-  const warningEl = document.getElementById(`gift-warning-${giftProductId}`);
-  if (!warningEl) return;
-  
-  if (requiredTotal === 0) {
-    warningEl.style.display = 'none';
-  } else if (currentGiftTotal !== requiredTotal) {
-    warningEl.style.display = 'block';
-    warningEl.className = 'gift-warning error';
-    warningEl.textContent = `⚠️ Musíte rozdeliť presne ${requiredTotal} ks gélov medzi varianty! (momentálne: ${currentGiftTotal} ks)`;
-  } else {
-    warningEl.style.display = 'block';
-    warningEl.className = 'gift-warning success';
-    warningEl.textContent = `✓ Správne rozdelených ${requiredTotal} ks gélov`;
-  }
-}
-
-// Aktualizácia darčekov podľa hlavných produktov
-function updateGifts() {
-  // Darček pásiky k 250ml parfumu
-  const p3Total = getTotalForProduct('p3');
-  const giftQtyP3 = document.getElementById('gift-qty-p3bonus');
-  if (giftQtyP3) giftQtyP3.value = p3Total;
-  
-  // Darček gély k 500ml parfumu - automaticky pridať do Univerzálny
-  const p4Total = getTotalForProduct('p4');
-  const currentGiftTotal = Object.values(giftVariantsData['p4bonus']).reduce((sum, val) => sum + val, 0);
-  
-  if (p4Total !== currentGiftTotal) {
-    // Automaticky nastaviť všetko do Univerzálny
-    giftVariantsData['p4bonus']['Univerzálny'] = p4Total;
-    giftVariantsData['p4bonus']['Na biele oblečenie'] = 0;
-    giftVariantsData['p4bonus']['Na čierne oblečenie'] = 0;
-    
-    // Aktualizovať inputy
-    document.getElementById('giftvar-p4bonus-Univerzálny').value = p4Total;
-    document.getElementById('giftvar-p4bonus-Na biele oblečenie').value = 0;
-    document.getElementById('giftvar-p4bonus-Na čierne oblečenie').value = 0;
-    
-    updateGiftProductTotal('p4bonus');
-  }
-  
-  // Validácia gélov pre 500ml
-  validateGiftTotal('p4bonus');
-}
-
-// Získať celkový počet kusov produktu
-function getTotalForProduct(productId) {
-  if (!variantsData[productId]) return 0;
-  return Object.values(variantsData[productId]).reduce((sum, val) => sum + val, 0);
-}
-
-// Aktualizácia celkového počtu darčekového produktu
-function updateGiftProductTotal(productId) {
-  let total = 0;
-  
-  if (giftVariantsData[productId]) {
-    total = Object.values(giftVariantsData[productId]).reduce((sum, val) => sum + val, 0);
-  }
-  
-  const totalEl = document.getElementById(`total-${productId}`);
-  if (totalEl) totalEl.textContent = total + ' ks';
-  
-  const product = products.find(p => p.id === productId);
-  const sum = total * product.price;
-  
-  const sumEl = document.getElementById(`sum-${productId}`);
-  if (sumEl) sumEl.textContent = fmt(sum);
-}
-
-// Aktualizácia celkového počtu a sumy produktu s variantmi
-// Zľava 50% sa počíta PER VARIANT, nie celkovo
-function updateProductTotal(productId) {
-  const product = products.find(p => p.id === productId);
-  let totalQty = 0;
-  let totalSum = 0;
-  
-  // Prejsť všetky varianty a pre každú samostatne počítať zľavu
-  Object.keys(variantsData[productId]).forEach(variantKey => {
-    const qty = variantsData[productId][variantKey];
-    totalQty += qty;
-    
-    if (product.discount === 'bogo50') {
-      // Zľava 50% na každý druhý kus V RÁMCI JEDNÉHO VARIANTU
-      const fullPriceItems = Math.ceil(qty / 2);
-      const halfPriceItems = Math.floor(qty / 2);
-      totalSum += (fullPriceItems * product.price) + (halfPriceItems * product.price * 0.5);
-    } else {
-      totalSum += qty * product.price;
-    }
-  });
-  
-  const totalEl = document.getElementById(`total-${productId}`);
-  if (totalEl) totalEl.textContent = totalQty + ' ks';
-  
-  const sumEl = document.getElementById(`sum-${productId}`);
-  if (sumEl) sumEl.textContent = fmt(totalSum);
-}
-
-// Prepočet celkových súm
-function recalc(){
-  let sum = 0;
-  
-  // Produkty s variantmi
-  products.forEach(p => {
-    if (p.hasVariants && !p.isGift) {
-      // Prejsť všetky varianty a pre každú samostatne počítať zľavu
-      Object.keys(variantsData[p.id]).forEach(variantKey => {
-        const qty = variantsData[p.id][variantKey];
-        
-        if (p.discount === 'bogo50') {
-          const fullPriceItems = Math.ceil(qty / 2);
-          const halfPriceItems = Math.floor(qty / 2);
-          sum += (fullPriceItems * p.price) + (halfPriceItems * p.price * 0.5);
-        } else {
-          sum += qty * p.price;
-        }
-      });
-    }
-  });
-  
-  // Darčekové produkty (cena 0)
-  // Nepridávajú nič do sumy
-  
-  // Štandardné produkty
-  document.querySelectorAll('#tbl tbody tr:not(.product-with-variants)').forEach(tr=>{
-    if (tr.dataset.isGift === 'true') return; // Preskočiť darčeky
-    
-    const price = parseFloat(tr.dataset.price || '0');
-    const raw = (tr.querySelector('input[type=number]')?.value || '').trim();
-    const qty = raw === '' ? 0 : Number(raw);
-    let total;
-
-    if (tr.dataset.discount === 'bogo50') {
-        const fullPriceItems = Math.ceil(qty / 2);
-        const halfPriceItems = Math.floor(qty / 2);
-        total = (fullPriceItems * price) + (halfPriceItems * price * 0.5);
-    } else {
-        total = price * qty;
-    }
-    
-    const cell = tr.querySelector('[data-total]');
-    if(cell) cell.textContent = fmt(total);
-    sum += total;
-  });
-  
-  const vat = sum * 0.23;
-  document.getElementById('sum_wo').textContent  = fmt(sum);
-  document.getElementById('sum_vat').textContent = fmt(vat);
-  document.getElementById('sum_w').textContent   = fmt(sum + vat);
-}
-
-function getKomisionarText(){
-  const v = id => (document.getElementById(id)?.value || '').trim();
-  const parts = [];
-  if(v('kom_nazov'))    parts.push(`Názov/Meno: ${v('kom_nazov')}`);
-  if(v('kom_ico'))      parts.push(`IČO: ${v('kom_ico')}`);
-  if(v('kom_dic'))      parts.push(`DIČ: ${v('kom_dic')}`);
-  if(v('kom_icdph'))    parts.push(`IČ DPH: ${v('kom_icdph')}`);
-  if(v('kom_adresa'))   parts.push(`Adresa: ${v('kom_adresa')}`);
-  if(v('kom_dodacia_adresa')) parts.push(`Dodacia adresa: ${v('kom_dodacia_adresa')}`);
-  if(v('kom_zastupeny'))parts.push(`Zastúpený: ${v('kom_zastupeny')}`);
-  if(v('kom_tel'))      parts.push(`Tel.: ${v('kom_tel')}`);
-  if(v('kom_email'))    parts.push(`E-mail: ${v('kom_email')}`);
-  if(v('kom_miesto'))   parts.push(`Miesto predaja: ${v('kom_miesto')}`);
-  return parts.join(' | ');
-}
-
-// Formspree: priprav „message" pred submitom
-document.getElementById('orderForm').addEventListener('submit', function(e){
-  // Validácia darčekových gélov
-  const p4Total = getTotalForProduct('p4');
-  if (p4Total > 0) {
-    const giftTotal = Object.values(giftVariantsData['p4bonus']).reduce((sum, val) => sum + val, 0);
-    if (giftTotal !== p4Total) {
-      e.preventDefault();
-      alert(`Musíte rozdeliť presne ${p4Total} ks darčekových gélov medzi varianty!\nMomentálne máte rozdelených: ${giftTotal} ks`);
-      return;
-    }
-  }
-  
-  const items = [];
-  
-  // Produkty s variantmi
-  products.forEach(p => {
-    if (p.hasVariants && !p.isGift) {
-      variantNames.forEach(vName => {
-        const vId = vName.toLowerCase();
-        const qty = variantsData[p.id][vId];
-        if (qty > 0) {
-          let total;
-          if (p.discount === 'bogo50') {
-            const fullPriceItems = Math.ceil(qty / 2);
-            const halfPriceItems = Math.floor(qty / 2);
-            total = (fullPriceItems * p.price) + (halfPriceItems * p.price * 0.5);
-            items.push(`- ${p.name} - ${vName} | ks: ${qty} | cena/ks: ${fmt(p.price)} (so zľavou 50% na každý 2. kus) | spolu: ${fmt(total)}`);
-          } else {
-            total = qty * p.price;
-            items.push(`- ${p.name} - ${vName} | ks: ${qty} | cena/ks: ${fmt(p.price)} | spolu: ${fmt(total)}`);
-          }
-        }
-      });
-    }
-  });
-  
-  // Darčekové produkty s variantmi (géli)
-  products.forEach(p => {
-    if (p.isGift && p.hasGiftVariants && giftVariantsData[p.id]) {
-      p.giftVariants.forEach(gvName => {
-        const qty = giftVariantsData[p.id][gvName];
-        if (qty > 0) {
-          items.push(`- ${p.name} - ${gvName} | ks: ${qty} | DARČEK (cena: 0,00 €)`);
-        }
-      });
-    }
-  });
-  
-  // Darčekové produkty bez variantov (pásiky)
-  products.forEach(p => {
-    if (p.isGift && !p.hasGiftVariants) {
-      const giftInput = document.getElementById(`gift-qty-${p.id}`);
-      const qty = giftInput ? (parseInt(giftInput.value) || 0) : 0;
-      if (qty > 0) {
-        items.push(`- ${p.name} | ks: ${qty} | DARČEK (cena: 0,00 €)`);
-      }
-    }
-  });
-  
-  // Štandardné produkty
-  const rows = [...document.querySelectorAll('#tbl tbody tr:not(.product-with-variants)')];
-  rows.forEach(tr=>{
-    if (tr.dataset.isGift === 'true') return; // Preskočiť darčeky (už spracované vyššie)
-    
-    const name = tr.children[0].innerText.trim();
-    const note = (tr.querySelector('.p-note')?.value || '').trim();
-    const raw = (tr.querySelector('input[type=number]')?.value || '').trim();
-    const qty = raw === '' ? 0 : Number(raw);
-    const price = parseFloat(tr.dataset.price || '0');
-    if(!qty) return;
-    const noteStr = note ? ` | pozn.: ${note}` : '';
-    
-    let total;
-    let pricePerPieceStr = `cena/ks: ${fmt(price)}`;
-    if (tr.dataset.discount === 'bogo50') {
-        const fullPriceItems = Math.ceil(qty / 2);
-        const halfPriceItems = Math.floor(qty / 2);
-        total = (fullPriceItems * price) + (halfPriceItems * price * 0.5);
-        pricePerPieceStr = `cena/ks: ${fmt(price)} (so zľavou 50% na každý 2. kus)`;
-    } else {
-        total = price * qty;
-    }
-    
-    items.push(`- ${name}${noteStr} | ks: ${qty} | ${pricePerPieceStr} | spolu: ${fmt(total)}`);
-  });
-
-  if(items.length === 0){
-    e.preventDefault();
-    alert('Najprv vyplňte aspoň jednu položku (Počet ks > 0).');
-    return;
-  }
-
-  const sumWO = document.getElementById('sum_wo')?.innerText || '';
-  const sumVAT = document.getElementById('sum_vat')?.innerText || '';
-  const sumW  = document.getElementById('sum_w')?.innerText || '';
-  const hdrDate = document.getElementById('hdrDate')?.value || '';
-  const komisionar = getKomisionarText();
-
-  const lines = [];
-  lines.push('OBJEDNÁVKA');
-  lines.push(`Dátum: ${hdrDate || '(nevyplnené)'}`);
-  if(komisionar) lines.push(`Odberateľ: ${komisionar}`);
-  lines.push('');
-  lines.push('Položky:');
-  lines.push(items.join('\n'));
-  lines.push('');
-  lines.push(`Spolu bez DPH: ${sumWO}`);
-  lines.push(`DPH 23%: ${sumVAT}`);
-  lines.push(`Spolu s DPH: ${sumW}`);
-  lines.push('');
-  lines.push('Odoslané z objednávacieho formulára Puella.');
-
-  document.getElementById('orderMessage').value = lines.join('\n');
-});
-
-// Inicializácia po načítaní stránky
-generateTable();
-recalc();
-</script>
-</body>
-</html>
+  document.querySelectorAll('#tbl in
