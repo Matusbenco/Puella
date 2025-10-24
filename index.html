@@ -511,6 +511,24 @@ function updateGifts() {
   const giftQtyP3 = document.getElementById('gift-qty-p3bonus');
   if (giftQtyP3) giftQtyP3.value = p3Total;
   
+  // Darček gély k 500ml parfumu - automaticky pridať do Univerzálny
+  const p4Total = getTotalForProduct('p4');
+  const currentGiftTotal = Object.values(giftVariantsData['p4bonus']).reduce((sum, val) => sum + val, 0);
+  
+  if (p4Total !== currentGiftTotal) {
+    // Automaticky nastaviť všetko do Univerzálny
+    giftVariantsData['p4bonus']['Univerzálny'] = p4Total;
+    giftVariantsData['p4bonus']['Na biele oblečenie'] = 0;
+    giftVariantsData['p4bonus']['Na čierne oblečenie'] = 0;
+    
+    // Aktualizovať inputy
+    document.getElementById('giftvar-p4bonus-Univerzálny').value = p4Total;
+    document.getElementById('giftvar-p4bonus-Na biele oblečenie').value = 0;
+    document.getElementById('giftvar-p4bonus-Na čierne oblečenie').value = 0;
+    
+    updateGiftProductTotal('p4bonus');
+  }
+  
   // Validácia gélov pre 500ml
   validateGiftTotal('p4bonus');
 }
