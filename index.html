@@ -258,6 +258,7 @@ const products = [
   {id: 'p3bonus', name: 'Pásiky na pranie – 10 ks – DARČEK k 250 ml parfumu', price: 0, isGift: true, giftForProductId: 'p3'},
   {id: 'p4', name: 'Puella parfum na pranie 500 ml', price: 19.90, hasVariants: true, badge: 'darček: Prací gél 1000 ml', isGiftTrigger: true, giftProductId: 'p4bonus'},
   {id: 'p4bonus', name: 'Prací gél 1000 ml – DARČEK k 500 ml parfumu', price: 0, isGift: true, giftForProductId: 'p4', hasGiftVariants: true, giftVariants: ['Univerzálny', 'Na biele oblečenie', 'Na čierne oblečenie']},
+  {id: 'p4free', name: 'Set 500ml parfum + 1000ml gél – DARČEK pri kúpe 10 ks', price: 0, isGift: true, giftForProductId: 'p4', hasGiftVariants: true, giftVariants: ['Double', 'Frayo', 'Emija', 'JaLu', 'Quenka', 'First Dream'], giftRatio: 10, badge: 'Kúp 10 ks, dostaneš 1 set ZDARMA'},
   {id: 'p5', name: 'Darčekové balenie Puella vzoriek – 12 ks', price: 4.29, hasVariants: false},
   {id: 'p6', name: 'Darčekové balenie Puella vzoriek – 18 ks', price: 6.39, hasVariants: false},
   {id: 'p7', name: 'Prací gél – jednorazová vzorka', price: 0.63, hasVariants: false},
@@ -278,7 +279,15 @@ const products = [
   {id: 'p22', name: 'Parfum 50 ml', price: 12.07, hasVariants: true},
   {id: 'p23', name: 'Parfum 10 ml (roll-on)', price: 6.34, hasVariants: true},
   {id: 'p24', name: 'Vôňa do bytu 50 ml', price: 9.77, hasVariants: true},
-  {id: 'p26', name: 'Pena do kúpeľa 250 ml', price: 6.50, hasVariants: true}
+  {id: 'p26', name: 'Pena do kúpeľa 250 ml', price: 6.50, hasVariants: true},
+  {id: 'p27', name: 'Puella - Vôňa do bytu 20 ml', price: 3.98, hasVariants: true},
+  {id: 'p28', name: 'Puella - Parfumovaný krém na ruky', price: 4.75, hasVariants: true},
+  {id: 'p29', name: 'Multifunkčné párovače ponožiek, sivé, 10 ks', price: 3.12, hasVariants: false},
+  {id: 'p30', name: 'Luxusná darčeková taška Puella', price: 0, hasVariants: true, customVariants: ['S', 'M', 'L'], customPrices: {s: 1.30, m: 1.42, l: 1.70}},
+  {id: 'p31', name: 'Luxusná Puella froté osuška z egyptskej bavlny', price: 0, hasVariants: true, customVariants: ['50 x 100 cm', '70 x 140 cm'], customPrices: {'50 x 100 cm': 11.38, '70 x 140 cm': 18.21}},
+  {id: 'p32', name: 'Puella bavlnený uterák 50 x 100 cm', price: 0, hasVariants: true, customVariants: ['Biely', 'Čierny'], customPrices: {biely: 4.55, čierny: 4.55}},
+  {id: 'p33', name: 'Puella bavlnená osuška 70 x 140 cm', price: 0, hasVariants: true, customVariants: ['Biela', 'Čierna'], customPrices: {biela: 6.82, čierna: 6.82}},
+  {id: 'p34', name: 'Puella rýchloschnúci uterák 70 x 140 cm', price: 0, hasVariants: true, customVariants: ['Ružový', 'Čierny'], customPrices: {ružový: 9.67, čierny: 9.67}}
 ];
 
 const variantNames = ['Double', 'Frayo', 'Emija', 'JaLu', 'Quenka', 'First Dream'];
@@ -297,7 +306,9 @@ const giftVariantsData = {};
 products.forEach(p => {
   if (p.hasVariants) {
     variantsData[p.id] = {};
-    variantNames.forEach(v => {
+    // Ak má produkt customVariants, použiť ich, inak použiť štandardné varianty
+    const variants = p.customVariants || variantNames;
+    variants.forEach(v => {
       variantsData[p.id][v.toLowerCase()] = 0;
     });
   }
@@ -327,23 +338,43 @@ function generateTable() {
       
       const badgeHtml = p.badge ? ` <span class="badge">${p.badge}</span>` : '';
       
+      // Určiť, ktoré varianty a farby použiť
+      const productVariants = p.customVariants || variantNames;
+      const productColors = variantColors; // Pre custom varianty nepoužijeme farby
+      
+      // Pre customPrices produkty, zobraziť "Podľa variantu" namiesto ceny
+      let priceDisplay;
+      if (p.customPrices) {
+        priceDisplay = 'Podľa variantu';
+      } else {
+        priceDisplay = fmt(p.price) + ' / ks';
+      }
+      
       tr.innerHTML = `
         <td colspan="5">
           <div style="display:flex;align-items:center;justify-content:space-between;padding:4px 0">
             <span><strong>${p.name}</strong>${badgeHtml} <span class="expand-icon">▼</span></span>
             <div style="display:flex;gap:20px;align-items:center">
-              <span style="color:var(--muted);font-size:13px">${fmt(p.price)} / ks</span>
+              <span style="color:var(--muted);font-size:13px">${priceDisplay}</span>
               <span id="total-${p.id}" style="font-weight:600;color:var(--pink);min-width:60px;text-align:right">0 ks</span>
               <span id="sum-${p.id}" style="font-weight:600;min-width:80px;text-align:right">${fmt(0)}</span>
             </div>
           </div>
           <div class="variants-container" id="variants-${p.id}">
-            ${variantNames.map(vName => {
+            ${productVariants.map(vName => {
               const vId = vName.toLowerCase();
-              const color = variantColors[vName];
+              const color = productColors[vName] || '#6b7280'; // Predvolená farba pre custom varianty
+              const showColor = !p.customVariants; // Zobrazovať farbu iba pre štandardné varianty
+              
+              // Pre customPrices zobraziť cenu pri variante
+              let variantPriceText = '';
+              if (p.customPrices && p.customPrices[vId]) {
+                variantPriceText = ` <span style="color:var(--muted);font-size:12px">(${fmt(p.customPrices[vId])})</span>`;
+              }
+              
               return `
                 <div class="variant-row">
-                  <span class="variant-name"><span style="display:inline-block;width:16px;height:16px;background:${color};border-radius:3px;margin-right:8px;vertical-align:middle;border:1px solid rgba(0,0,0,0.1)"></span>${vName}</span>
+                  <span class="variant-name">${showColor ? `<span style="display:inline-block;width:16px;height:16px;background:${color};border-radius:3px;margin-right:8px;vertical-align:middle;border:1px solid rgba(0,0,0,0.1)"></span>` : ''}${vName}${variantPriceText}</span>
                   <div class="variant-controls">
                     <button class="variant-btn" onclick="changeVariant('${p.id}', '${vId}', -1)" type="button">−</button>
                     <input type="number" class="variant-input" id="var-${p.id}-${vId}" value="0" min="0" onchange="updateVariantFromInput('${p.id}', '${vId}')">
@@ -512,7 +543,16 @@ function validateGiftTotal(giftProductId) {
   if (!product || !product.giftForProductId) return;
   
   const mainProductId = product.giftForProductId;
-  const requiredTotal = getTotalForProduct(mainProductId);
+  const mainTotal = getTotalForProduct(mainProductId);
+  
+  // Ak má produkt giftRatio (napr. 10), vypočítať požadovaný počet darčekov
+  let requiredTotal;
+  if (product.giftRatio) {
+    requiredTotal = Math.floor(mainTotal / product.giftRatio);
+  } else {
+    requiredTotal = mainTotal;
+  }
+  
   const currentGiftTotal = Object.values(giftVariantsData[giftProductId]).reduce((sum, val) => sum + val, 0);
   
   const warningEl = document.getElementById(`gift-warning-${giftProductId}`);
@@ -520,14 +560,37 @@ function validateGiftTotal(giftProductId) {
   
   if (requiredTotal === 0) {
     warningEl.style.display = 'none';
-  } else if (currentGiftTotal !== requiredTotal) {
+  } else if (currentGiftTotal > requiredTotal) {
+    // Príliš veľa darčekov
     warningEl.style.display = 'block';
     warningEl.className = 'gift-warning error';
-    warningEl.textContent = `⚠️ Musíte rozdeliť presne ${requiredTotal} ks gélov medzi varianty! (momentálne: ${currentGiftTotal} ks)`;
+    if (product.giftRatio) {
+      warningEl.textContent = `⚠️ Máte rozdelených príliš veľa darčekov! Pri ${mainTotal} kusoch máte nárok len na ${requiredTotal} darčekový${requiredTotal > 1 ? 'ch setov' : ' set'}. (momentálne: ${currentGiftTotal} ks)`;
+    } else {
+      warningEl.textContent = `⚠️ Máte rozdelených príliš veľa! Musíte rozdeliť presne ${requiredTotal} ks. (momentálne: ${currentGiftTotal} ks)`;
+    }
+  } else if (currentGiftTotal < requiredTotal) {
+    // Málo darčekov
+    warningEl.style.display = 'block';
+    warningEl.className = 'gift-warning error';
+    if (product.giftRatio) {
+      if (currentGiftTotal === 0) {
+        warningEl.textContent = `⚠️ Pri ${mainTotal} kusoch máte nárok na ${requiredTotal} darčekový${requiredTotal > 1 ? 'ch setov' : ' set'} ZDARMA! Musíte ich rozdeliť medzi varianty.`;
+      } else {
+        warningEl.textContent = `⚠️ Pri ${mainTotal} kusoch máte nárok na ${requiredTotal} darčekový${requiredTotal > 1 ? 'ch setov' : ' set'}! Rozdeľte ešte ${requiredTotal - currentGiftTotal} ks. (momentálne: ${currentGiftTotal} ks)`;
+      }
+    } else {
+      warningEl.textContent = `⚠️ Musíte rozdeliť presne ${requiredTotal} ks medzi varianty! Chýba ešte ${requiredTotal - currentGiftTotal} ks. (momentálne: ${currentGiftTotal} ks)`;
+    }
   } else {
+    // Správny počet
     warningEl.style.display = 'block';
     warningEl.className = 'gift-warning success';
-    warningEl.textContent = `✓ Správne rozdelených ${requiredTotal} ks gélov`;
+    if (product.giftRatio) {
+      warningEl.textContent = `✓ Správne rozdelených ${requiredTotal} darčekový${requiredTotal > 1 ? 'ch setov' : ' set'}`;
+    } else {
+      warningEl.textContent = `✓ Správne rozdelených ${requiredTotal} ks`;
+    }
   }
 }
 
@@ -558,6 +621,11 @@ function updateGifts() {
   
   // Validácia gélov pre 500ml
   validateGiftTotal('p4bonus');
+  
+  // Validácia darčeku "Kúp 10, dostaneš 1 zdarma" pre 500ml
+  if (giftVariantsData['p4free']) {
+    validateGiftTotal('p4free');
+  }
 }
 
 // Získať celkový počet kusov produktu
@@ -596,13 +664,19 @@ function updateProductTotal(productId) {
     const qty = variantsData[productId][variantKey];
     totalQty += qty;
     
+    // Získať cenu pre daný variant
+    let price = product.price;
+    if (product.customPrices && product.customPrices[variantKey]) {
+      price = product.customPrices[variantKey];
+    }
+    
     if (product.discount === 'bogo50') {
       // Zľava 50% na každý druhý kus V RÁMCI JEDNÉHO VARIANTU
       const fullPriceItems = Math.ceil(qty / 2);
       const halfPriceItems = Math.floor(qty / 2);
-      totalSum += (fullPriceItems * product.price) + (halfPriceItems * product.price * 0.5);
+      totalSum += (fullPriceItems * price) + (halfPriceItems * price * 0.5);
     } else {
-      totalSum += qty * product.price;
+      totalSum += qty * price;
     }
   });
   
@@ -624,12 +698,18 @@ function recalc(){
       Object.keys(variantsData[p.id]).forEach(variantKey => {
         const qty = variantsData[p.id][variantKey];
         
+        // Získať cenu pre daný variant
+        let price = p.price;
+        if (p.customPrices && p.customPrices[variantKey]) {
+          price = p.customPrices[variantKey];
+        }
+        
         if (p.discount === 'bogo50') {
           const fullPriceItems = Math.ceil(qty / 2);
           const halfPriceItems = Math.floor(qty / 2);
-          sum += (fullPriceItems * p.price) + (halfPriceItems * p.price * 0.5);
+          sum += (fullPriceItems * price) + (halfPriceItems * price * 0.5);
         } else {
-          sum += qty * p.price;
+          sum += qty * price;
         }
       });
     }
@@ -684,7 +764,7 @@ function getKomisionarText(){
 
 // Formspree: priprav „message" pred submitom
 document.getElementById('orderForm').addEventListener('submit', function(e){
-  // Validácia darčekových gélov
+  // Validácia darčekových gélov pre p4bonus
   const p4Total = getTotalForProduct('p4');
   if (p4Total > 0) {
     const giftTotal = Object.values(giftVariantsData['p4bonus']).reduce((sum, val) => sum + val, 0);
@@ -695,24 +775,49 @@ document.getElementById('orderForm').addEventListener('submit', function(e){
     }
   }
   
+  // Validácia darčekových setov "Kúp 10, dostaneš 1 zdarma" pre p4free
+  if (p4Total >= 10 && giftVariantsData['p4free']) {
+    const requiredFreeGifts = Math.floor(p4Total / 10);
+    const currentFreeGifts = Object.values(giftVariantsData['p4free']).reduce((sum, val) => sum + val, 0);
+    
+    if (currentFreeGifts !== requiredFreeGifts) {
+      e.preventDefault();
+      if (currentFreeGifts === 0) {
+        alert(`Pri ${p4Total} kusoch parfumu 500ml máte nárok na ${requiredFreeGifts} darčekový${requiredFreeGifts > 1 ? 'ch setov' : ' set'} ZDARMA!\nMusíte si vybrať vôňu/vône pre darčekové sety.`);
+      } else if (currentFreeGifts > requiredFreeGifts) {
+        alert(`Máte rozdelených príliš veľa darčekových setov!\nPri ${p4Total} kusoch máte nárok len na ${requiredFreeGifts} set${requiredFreeGifts > 1 ? 'y' : ''}.\nMomentálne máte: ${currentFreeGifts} ks`);
+      } else {
+        alert(`Musíte rozdeliť presne ${requiredFreeGifts} darčekový${requiredFreeGifts > 1 ? 'ch setov' : ' set'} medzi varianty!\nMomentálne máte rozdelených: ${currentFreeGifts} ks`);
+      }
+      return;
+    }
+  }
+  
   const items = [];
   
   // Produkty s variantmi
   products.forEach(p => {
     if (p.hasVariants && !p.isGift) {
-      variantNames.forEach(vName => {
+      const variants = p.customVariants || variantNames;
+      variants.forEach(vName => {
         const vId = vName.toLowerCase();
         const qty = variantsData[p.id][vId];
         if (qty > 0) {
+          // Získať cenu pre daný variant
+          let price = p.price;
+          if (p.customPrices && p.customPrices[vId]) {
+            price = p.customPrices[vId];
+          }
+          
           let total;
           if (p.discount === 'bogo50') {
             const fullPriceItems = Math.ceil(qty / 2);
             const halfPriceItems = Math.floor(qty / 2);
-            total = (fullPriceItems * p.price) + (halfPriceItems * p.price * 0.5);
-            items.push(`- ${p.name} - ${vName} | ks: ${qty} | cena/ks: ${fmt(p.price)} (so zľavou 50% na každý 2. kus) | spolu: ${fmt(total)}`);
+            total = (fullPriceItems * price) + (halfPriceItems * price * 0.5);
+            items.push(`- ${p.name} - ${vName} | ks: ${qty} | cena/ks: ${fmt(price)} (so zľavou 50% na každý 2. kus) | spolu: ${fmt(total)}`);
           } else {
-            total = qty * p.price;
-            items.push(`- ${p.name} - ${vName} | ks: ${qty} | cena/ks: ${fmt(p.price)} | spolu: ${fmt(total)}`);
+            total = qty * price;
+            items.push(`- ${p.name} - ${vName} | ks: ${qty} | cena/ks: ${fmt(price)} | spolu: ${fmt(total)}`);
           }
         }
       });
