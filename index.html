@@ -513,8 +513,42 @@ function updateVariantFromInput(productId, variantName) {
 
 // Zmena množstva darčekového variantu
 function changeGiftVariant(productId, giftVariantName, delta) {
+  const product = products.find(p => p.id === productId);
+  if (!product || !product.giftForProductId) return;
+  
+  const mainProductId = product.giftForProductId;
+  const mainTotal = getTotalForProduct(mainProductId);
+  
+  // Vypočítať maximálny povolený počet darčekov
+  let maxAllowed;
+  if (product.giftRatio) {
+    maxAllowed = Math.floor(mainTotal / product.giftRatio);
+  } else {
+    maxAllowed = mainTotal;
+  }
+  
+  // Ak nie je žiadny hlavný produkt, zablokovať pridávanie darčekov
+  if (maxAllowed === 0 && delta > 0) {
+    if (product.giftRatio) {
+      alert(`Najprv musíte objednať aspoň ${product.giftRatio} ks produktu "${products.find(p => p.id === mainProductId).name}"!`);
+    } else {
+      alert(`Najprv musíte objednať produkt "${products.find(p => p.id === mainProductId).name}"!`);
+    }
+    return;
+  }
+  
   const currentVal = giftVariantsData[productId][giftVariantName];
   const newVal = Math.max(0, currentVal + delta);
+  
+  // Skontrolovať, či celkový počet darčekov neprekročí maximum
+  const currentTotal = Object.values(giftVariantsData[productId]).reduce((sum, val) => sum + val, 0);
+  const newTotal = currentTotal - currentVal + newVal;
+  
+  if (newTotal > maxAllowed) {
+    alert(`Nemôžete pridať viac darčekov! Maximum: ${maxAllowed} ks`);
+    return;
+  }
+  
   giftVariantsData[productId][giftVariantName] = newVal;
   
   const input = document.getElementById(`giftvar-${productId}-${giftVariantName}`);
@@ -527,8 +561,33 @@ function changeGiftVariant(productId, giftVariantName, delta) {
 
 // Aktualizácia darčekového variantu z inputu
 function updateGiftVariantFromInput(productId, giftVariantName) {
+  const product = products.find(p => p.id === productId);
+  if (!product || !product.giftForProductId) return;
+  
+  const mainProductId = product.giftForProductId;
+  const mainTotal = getTotalForProduct(mainProductId);
+  
+  // Vypočítať maximálny povolený počet darčekov
+  let maxAllowed;
+  if (product.giftRatio) {
+    maxAllowed = Math.floor(mainTotal / product.giftRatio);
+  } else {
+    maxAllowed = mainTotal;
+  }
+  
   const input = document.getElementById(`giftvar-${productId}-${giftVariantName}`);
-  const val = Math.max(0, parseInt(input.value) || 0);
+  let val = Math.max(0, parseInt(input.value) || 0);
+  
+  // Skontrolovať, či celkový počet darčekov neprekročí maximum
+  const currentTotal = Object.values(giftVariantsData[productId]).reduce((sum, v) => sum + v, 0);
+  const currentVariantVal = giftVariantsData[productId][giftVariantName];
+  const newTotal = currentTotal - currentVariantVal + val;
+  
+  if (newTotal > maxAllowed) {
+    alert(`Nemôžete pridať viac darčekov! Maximum: ${maxAllowed} ks`);
+    val = currentVariantVal; // Vrátiť späť pôvodnú hodnotu
+  }
+  
   giftVariantsData[productId][giftVariantName] = val;
   input.value = val;
   
@@ -626,6 +685,57 @@ function updateGifts() {
   if (giftVariantsData['p4free']) {
     validateGiftTotal('p4free');
   }
+  
+  // Aktualizovať stav tlačidiel darčekov
+  updateGiftButtonsState();
+}
+
+// Aktualizácia stavu tlačidiel darčekov (enable/disable)
+function updateGiftButtonsState() {
+  products.forEach(p => {
+    if (p.isGift && p.hasGiftVariants && p.giftForProductId) {
+      const mainTotal = getTotalForProduct(p.giftForProductId);
+      let maxAllowed;
+      
+      if (p.giftRatio) {
+        maxAllowed = Math.floor(mainTotal / p.giftRatio);
+      } else {
+        maxAllowed = mainTotal;
+      }
+      
+      const currentTotal = Object.values(giftVariantsData[p.id]).reduce((sum, val) => sum + val, 0);
+      const isMaxReached = currentTotal >= maxAllowed;
+      const hasNoMain = maxAllowed === 0;
+      
+      // Prejsť všetky tlačidlá + pre tento produkt
+      p.giftVariants.forEach(gvName => {
+        const plusBtn = document.querySelector(`#variants-${p.id} button[onclick*="changeGiftVariant('${p.id}', '${gvName}', 1)"]`);
+        const input = document.getElementById(`giftvar-${p.id}-${gvName}`);
+        
+        if (plusBtn) {
+          if (hasNoMain || isMaxReached) {
+            plusBtn.disabled = true;
+            plusBtn.style.opacity = '0.4';
+            plusBtn.style.cursor = 'not-allowed';
+          } else {
+            plusBtn.disabled = false;
+            plusBtn.style.opacity = '1';
+            plusBtn.style.cursor = 'pointer';
+          }
+        }
+        
+        if (input) {
+          if (hasNoMain) {
+            input.disabled = true;
+            input.style.opacity = '0.4';
+          } else {
+            input.disabled = false;
+            input.style.opacity = '1';
+          }
+        }
+      });
+    }
+  });
 }
 
 // Získať celkový počet kusov produktu
