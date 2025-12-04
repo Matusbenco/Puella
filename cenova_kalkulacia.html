@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-<title>Cenová ponuka | Drogeria Fecko</title>
+<title>Cenová kalkulácia Puella</title>
 <style>
   /* --- ZÁKLADNÉ NASTAVENIA --- */
   @page { size: A4 landscape; margin: 0.8cm; }
@@ -177,14 +177,14 @@
 <body>
 <div class="wrap">
   <header>
-    <h1>Cenová ponuka</h1>
+    <h1>Cenová kalkulácia Puella</h1>
   </header>
 
   <div class="section">
     <div class="card">
       <div class="grid">
         <div><strong>Dodávateľ:</strong> PUELLAvone s. r. o., Košice</div>
-        <div><strong>Odberateľ:</strong> Drogeria Fecko <input placeholder="Doplňte údaje..." style="width:60%;display:inline-block"></div>
+        <div><strong>Odberateľ:</strong> <input placeholder="Doplňte údaje klienta..." style="width:60%;display:inline-block"></div>
       </div>
     </div>
 
@@ -227,11 +227,11 @@ const pct = n => n.toLocaleString('sk-SK',{minimumFractionDigits:1,maximumFracti
 
 // --- DÁTA ---
 const data = [
-  // --- 1. SET 500ml (Pôvodné - VRÁTENÉ) ---
+  // --- 1. SET 500ml (CENA ZMENENÁ NA 14,90 €) ---
   {
     id: 'p500', 
     name: 'Puella parfum 500 ml', 
-    nc: 14.50, 
+    nc: 14.90, // Pôvodne 14.50, teraz 14.90
     moc: 25.90, 
     vars: true,
     type: 'master', 
@@ -250,11 +250,11 @@ const data = [
     badge: 'Povinný doplnok'
   },
 
-  // --- 2. SET 250ml (Pôvodné - VRÁTENÉ) ---
+  // --- 2. SET 250ml (CENA ZMENENÁ NA 13,68 €) ---
   {
     id: 'p250', 
     name: 'Puella parfum 250 ml', 
-    nc: 11.00, 
+    nc: 13.68, // Pôvodne 11.00, teraz 13.68
     moc: 19.90, 
     vars: true,
     type: 'master', 
@@ -272,7 +272,7 @@ const data = [
     badge: 'Povinný doplnok'
   },
 
-  // --- 3. PARFUM NA TELO 50ml (NOVÉ PODĽA ZADANIA) ---
+  // --- 3. PARFUM NA TELO 50ml ---
   // A. SAMOSTATNÝ KUS
   {
     id: 'p50_single', 
@@ -294,7 +294,7 @@ const data = [
       badge: 'VÝHODNÉ BALENIE (Sada 6ks jednej vône)'
   },
 
-  // --- 4. Ostatné produkty (Pôvodné) ---
+  // --- 4. Ostatné produkty ---
   {id:'sample', name:'Skúšobný set (6 ks)', nc:1.62, moc:3.50},
   
   // Pásiky (Samostatné)
