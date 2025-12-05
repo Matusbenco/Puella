@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-<title>Cenová kalkulácia Puella</title>
+<title>Interaktívna kalkulácia Puella</title>
 <style>
   /* --- ZÁKLADNÉ NASTAVENIA --- */
   @page { size: A4 landscape; margin: 0.8cm; }
@@ -51,10 +51,26 @@
   
   .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
   
+  /* Inputy */
   input { padding: 8px; border: 1px solid #ccc; border-radius: 4px; width: 100%; font-size: 13px; }
   input[type="number"] { text-align: center; font-weight: bold; }
   
-  /* --- TABUĽKA DESKTOP --- */
+  /* Špeciálny štýl pre editáciu ceny */
+  .inp-price {
+      background: #fff;
+      border: 1px solid #94a3b8;
+      color: var(--pink);
+      width: 80px !important;
+      text-align: right;
+      padding-right: 5px;
+  }
+  .inp-price:focus {
+      border-color: var(--pink);
+      outline: none;
+      box-shadow: 0 0 0 2px rgba(231,49,140,0.2);
+  }
+
+  /* --- TABUĽKA --- */
   table { width: 100%; border-collapse: separate; border-spacing: 0; margin-top: 5px; }
   th { 
       background: var(--pink); 
@@ -97,42 +113,31 @@
   .v-inp { width: 50px!important; text-align: center; margin: 0 5px; height: 28px; }
   .expand-btn { cursor: pointer; color: var(--pink); font-weight: bold; font-size: 12px; margin-left: 5px; text-decoration: underline; padding: 5px; display: inline-block;}
 
-  /* --- MOBILNÉ ZOBRAZENIE --- */
+  /* --- MOBIL --- */
   @media only screen and (max-width: 768px) {
       body { padding: 5px; }
       .section { padding: 10px; }
       .grid { grid-template-columns: 1fr; gap: 10px; }
       input[style*="width:60%"] { width: 100% !important; margin-top: 5px; }
 
-      /* Karta namiesto riadku */
       table, thead, tbody, th, td, tr { display: block; }
       thead tr { position: absolute; top: -9999px; left: -9999px; }
       
       tr { 
-          margin-bottom: 15px; 
-          border: 1px solid #ddd; 
-          border-radius: 8px; 
-          box-shadow: 0 2px 5px rgba(0,0,0,0.03); 
-          background: #fff;
-          padding-bottom: 10px;
+          margin-bottom: 15px; border: 1px solid #ddd; 
+          border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.03); 
+          background: #fff; padding-bottom: 10px;
       }
-
-      /* Opravy farieb pre mobil */
+      /* Farby mobil */
       tr.is-master { background: var(--blue-light); border: 2px solid var(--blue-border); border-bottom: none; border-radius: 8px 8px 0 0; margin-bottom: 0; }
       tr.is-slave { background: var(--blue-light); border: 2px solid var(--blue-border); border-top: none; border-radius: 0 0 8px 8px; margin-top: -2px; }
       tr.is-premium { background: var(--gold-light); border: 2px solid var(--gold); border-radius: 8px; }
-      
       tr.is-master td:first-child, tr.is-slave td:first-child, tr.is-premium td:first-child { border-left: none; }
 
       td { 
-          border: none;
-          border-bottom: 1px solid #f0f0f0; 
-          position: relative; 
-          padding-left: 45%; 
-          text-align: right; 
-          padding-top: 10px;
-          padding-bottom: 10px;
-          min-height: 40px;
+          border: none; border-bottom: 1px solid #f0f0f0; 
+          position: relative; padding-left: 45%; text-align: right; 
+          padding-top: 10px; padding-bottom: 10px; min-height: 40px;
       }
       td:last-child { border-bottom: none; }
       td:before { 
@@ -140,21 +145,14 @@
           padding-right: 10px; white-space: nowrap; text-align: left; 
           font-weight: bold; color: #666; content: attr(data-label); 
       }
-
-      /* Názov produktu na celú šírku */
-      td:first-child {
-          padding-left: 10px; text-align: left; background: #f9fafb;
-          border-bottom: 2px solid #eee; font-size: 15px;
-      }
+      td:first-child { padding-left: 10px; text-align: left; background: #f9fafb; border-bottom: 2px solid #eee; font-size: 15px; }
       td:first-child:before { content: none; }
 
       .v-wrap { position: relative; width: 100%; text-align: left; margin-top: 15px;}
       .v-row { margin-bottom: 8px; border-bottom: 1px dashed #eee; padding-bottom: 5px; }
-
       tfoot tr { display: flex; flex-direction: column; align-items: flex-end; padding: 10px; border:none; box-shadow: none; background: transparent; }
       tfoot td { padding-left: 10px; text-align: right; width: 100%; display: flex; justify-content: space-between;}
       tfoot td:before { position: static; width: auto; }
-      
       .btn-print { width: 100%; padding: 15px; font-size: 16px; margin-top: 20px;}
   }
 
@@ -162,6 +160,9 @@
     .btn-print, .expand-btn, .v-btn { display: none !important; }
     .v-wrap { display: block !important; border: none; padding: 0; }
     input { border: none; background: none; padding: 0; }
+    /* Pri tlači skryjeme orámovanie inputov */
+    .inp-price { border: none !important; text-align: right; width: auto !important; padding: 0; }
+    
     tr.is-master td, tr.is-slave td { background-color: #f0f8ff !important; -webkit-print-color-adjust: exact; }
     tr.is-premium td { background-color: #fef3c7 !important; -webkit-print-color-adjust: exact; }
     table, thead, tbody, th, td, tr { display: table-row-group; }
@@ -193,8 +194,8 @@
         <thead>
           <tr>
             <th style="width:30%">Produkt</th>
-            <th class="right" style="width:10%">Odporúčaná<br>MOC s DPH</th>
-            <th class="right" style="width:10%">Vaša Marža<br>(%)</th>
+            <th class="right" style="width:12%">MOC s DPH<br>(Editovateľné)</th>
+            <th class="right" style="width:10%">Marža<br>(%)</th>
             <th style="width:10%">Poznámka</th>
             <th class="center" style="width:15%">Počet</th>
             <th class="right" style="width:12%">Vaša Cena<br>bez DPH / ks</th>
@@ -227,11 +228,11 @@ const pct = n => n.toLocaleString('sk-SK',{minimumFractionDigits:1,maximumFracti
 
 // --- DÁTA ---
 const data = [
-  // --- 1. SET 500ml (CENA ZMENENÁ NA 14,90 €) ---
+  // --- 1. SET 500ml ---
   {
     id: 'p500', 
     name: 'Puella parfum 500 ml', 
-    nc: 14.90, // Pôvodne 14.50, teraz 14.90
+    nc: 14.90, 
     moc: 25.90, 
     vars: true,
     type: 'master', 
@@ -250,11 +251,11 @@ const data = [
     badge: 'Povinný doplnok'
   },
 
-  // --- 2. SET 250ml (CENA ZMENENÁ NA 13,68 €) ---
+  // --- 2. SET 250ml ---
   {
     id: 'p250', 
     name: 'Puella parfum 250 ml', 
-    nc: 13.68, // Pôvodne 11.00, teraz 13.68
+    nc: 13.68, 
     moc: 19.90, 
     vars: true,
     type: 'master', 
@@ -273,7 +274,6 @@ const data = [
   },
 
   // --- 3. PARFUM NA TELO 50ml ---
-  // A. SAMOSTATNÝ KUS
   {
     id: 'p50_single', 
     name: 'Parfum na telo 50 ml (Kus)', 
@@ -282,31 +282,27 @@ const data = [
     vars: true,
     badge: 'Novinka'
   },
-  // B. 6-PACK (Premium balenie)
   {
       id: 'p50_pack', 
       name: 'Parfum na telo 50 ml (6-pack)', 
-      nc: 60.36, // 6 x 10,06 €
+      nc: 60.36, 
       moc: 119.90, 
       vars: true,
       customVars: ['Double', 'Frayo', 'Emija', 'JaLu', 'Quenka', 'First Dream'], 
       type: 'premium', 
-      badge: 'VÝHODNÉ BALENIE (Sada 6ks jednej vône)'
+      badge: 'VÝHODNÉ BALENIE (Sada 6ks)'
   },
 
   // --- 4. Ostatné produkty ---
   {id:'sample', name:'Skúšobný set (6 ks)', nc:1.62, moc:3.50},
   
-  // Pásiky (Samostatné)
   {id:'s10', name:'Pásiky na pranie - 10 ks (Samostatné)', nc:2.84, moc:4.99},
   {id:'s50', name:'Pásiky na pranie - 50 ks', nc:8.84, moc:15.99},
   {id:'s100', name:'Pásiky na pranie - 100 ks', nc:13.21, moc:24.99},
   
-  // Čističe
   {id:'cl250', name:'Univerzálny čistič 250 ml', nc:3.69, moc:6.99, vars:true},
   {id:'cl500', name:'Univerzálny čistič 500 ml', nc:5.28, moc:9.99, vars:true},
   
-  // Ostatné
   {id:'candle', name:'Vonná sviečka 230g', nc:6.21, moc:11.90, vars:true, note:'Akcia 1+1'},
   {id:'diff', name:'Vonný difuzér 100ml', nc:8.22, moc:14.90, vars:true, note:'Akcia 1+1'},
   {id:'card', name:'Voňavá karta', nc:2.70, moc:4.90, vars:true},
@@ -329,7 +325,6 @@ function render(){
   tb.innerHTML = '';
 
   data.forEach(p => {
-    // Styling triedy
     let trClass = '';
     if(p.type === 'master') trClass = 'is-master';
     if(p.type === 'slave') trClass = 'is-slave';
@@ -338,7 +333,7 @@ function render(){
     const tr = document.createElement('tr');
     tr.className = trClass;
 
-    // Názov a štítky
+    // Názov
     let nameHtml = `<strong>${p.name}</strong>`;
     if(p.type === 'slave') nameHtml = `<span class="link-icon">↳</span> ${p.name}`;
     
@@ -352,16 +347,7 @@ function render(){
     }
     if(p.note) badgeHtml += ` <span class="badge">${p.note}</span>`;
 
-    // Výpočet Marže
-    let margin = '-';
-    if(p.nc > 0 && p.moc > 0) {
-      let nakupSDPH = p.nc * 1.23;
-      let profit = p.moc - nakupSDPH;
-      let m = (profit / p.moc) * 100;
-      margin = pct(m);
-    }
-
-    // Inputy
+    // Inputy pre Počet
     const totalQty = getQty(p.id);
     let inputHtml = '';
     
@@ -384,10 +370,13 @@ function render(){
       inputHtml = `<input id="inp-simple-${p.id}" type="number" value="${totalQty}" min="0" onchange="updSimple('${p.id}',this.value)" ${readonly}>`;
     }
 
+    // Input pre MOC (Cenu) - ZMENA TU
+    const mocInput = `<input type="number" step="0.01" class="inp-price" value="${p.moc}" onchange="updMoc('${p.id}', this.value)"> €`;
+
     tr.innerHTML = `
       <td data-label="Produkt">${nameHtml}${badgeHtml}</td>
-      <td class="right" data-label="MOC s DPH">${fmt(p.moc)}</td>
-      <td class="right" data-label="Marža" style="color:#059669;font-weight:bold">${margin}</td>
+      <td class="right" data-label="MOC s DPH">${mocInput}</td>
+      <td class="right" data-label="Marža" id="margin-${p.id}" style="color:#059669;font-weight:bold">-</td>
       <td data-label="Poznámka"><input type="text" placeholder="Pozn." style="border:none;border-bottom:1px dashed #ccc; width:100%"></td>
       <td data-label="Počet">${inputHtml}</td>
       <td class="right" data-label="Cena bez DPH">${fmt(p.nc)}</td>
@@ -417,14 +406,11 @@ function getQty(id){ return Object.values(state[id]).reduce((a,b)=>a+b,0); }
 
 function chV(id, v, d){
   const p = data.find(x=>x.id===id);
-  
-  // Kontrola pre viazané produkty (Slave nemôže byť viac ako Master)
   if(p.type === 'slave' && d > 0){
     const mQty = getQty(p.master);
     const cQty = getQty(id);
     if(cQty >= mQty) return alert('Nemôžete pridať viac kusov doplnku ako máte hlavných produktov.');
   }
-
   const val = Math.max(0, state[id][v] + d);
   state[id][v] = val;
   document.getElementById(`inp-${id}-${v}`).value = val;
@@ -435,12 +421,10 @@ function setV(id, v, val){
   const p = data.find(x=>x.id===id);
   let n = parseInt(val)||0;
   if(n<0) n=0;
-  
   if(p.type === 'slave'){
      const mQty = getQty(p.master);
      const cQty = getQty(id);
      const old = state[id][v];
-     // Jednoduchá kontrola
      if((cQty - old + n) > mQty){
        alert('Prekročený počet doplnkov!');
        n = old;
@@ -454,6 +438,21 @@ function setV(id, v, val){
 function updSimple(id, val){
   state[id]['_val'] = parseInt(val)||0;
   recalc();
+}
+
+// Funkcia na aktualizáciu MOC
+function updMoc(id, val) {
+    // Nahradenie čiarky bodkou pre istotu
+    let cleanVal = val.replace(',', '.');
+    let n = parseFloat(cleanVal);
+    if(isNaN(n)) n = 0;
+    
+    // Nájdeme produkt v dátach a prepíšeme MOC
+    const p = data.find(x => x.id === id);
+    if(p) {
+        p.moc = n;
+        recalc(); // Spustíme prepočet
+    }
 }
 
 function recalc(){
@@ -470,50 +469,63 @@ function recalc(){
         document.getElementById(`qty-total-${p.id}`).innerText = qty + ' ' + unitText;
     }
 
+    // Výpočet marže a zisku (teraz používa aktuálnu p.moc)
+    let marginText = '-';
+    let rowProfit = 0;
+
     if(p.moc > 0) {
       const nakupSDPH = p.nc * 1.23;
       const ziskKus = p.moc - nakupSDPH;
-      totalProfit += (ziskKus * qty);
+      rowProfit = ziskKus * qty;
+      totalProfit += rowProfit;
+
+      // Marža %
+      if (p.nc > 0) {
+          let m = (ziskKus / p.moc) * 100;
+          marginText = pct(m);
+      }
+    }
+    
+    // Aktualizácia stĺpca Marža v tabuľke
+    const marginEl = document.getElementById(`margin-${p.id}`);
+    if(marginEl) {
+        marginEl.innerText = marginText;
+        // Farba marže (červená ak je záporná, zelená ak kladná)
+        marginEl.style.color = (marginText !== '-' && parseFloat(marginText) < 0) ? '#dc2626' : '#059669';
     }
 
     // MASTER -> SLAVE Sync
     if(p.type === 'master'){
       const sId = p.slave;
       const sP = data.find(x=>x.id===sId);
-      
-      // Ak slave nemá varianty (napr. pásiky 10ks k 250ml), nastavíme natvrdo počet
       if(!sP.vars){
         state[sId]['_val'] = qty;
         const el = document.getElementById(`inp-simple-${sId}`);
         if(el) el.value = qty;
         document.getElementById(`sum-${sId}`).innerText = fmt(qty * sP.nc);
-      } 
-      else {
-          // Ak slave má varianty (napr. gél k 500ml), len aktualizujeme status
+      } else {
           updateSlaveStatus(sP);
       }
     }
-    
     if(p.type === 'slave' && p.vars) updateSlaveStatus(p);
   });
 
-  // Finálne sumy
+  // Finálne sumy Nákupu
   totalNC = 0;
-  totalProfit = 0;
   data.forEach(p => {
       const qty = getQty(p.id);
       totalNC += qty * p.nc;
-      // Zisk
-      const nakupSDPH = p.nc * 1.23;
-      const ziskKus = p.moc - nakupSDPH;
-      totalProfit += (ziskKus * qty);
   });
 
   const vat = totalNC * 0.23;
   document.getElementById('sum_wo').innerText = fmt(totalNC);
   document.getElementById('sum_vat').innerText = fmt(vat);
   document.getElementById('sum_w').innerText = fmt(totalNC + vat);
-  document.getElementById('profit').innerText = fmt(totalProfit);
+  
+  // Zobrazenie Zisku
+  const profitEl = document.getElementById('profit');
+  profitEl.innerText = fmt(totalProfit);
+  profitEl.style.color = totalProfit >= 0 ? '#047857' : '#dc2626';
 }
 
 function updateSlaveStatus(p) {
