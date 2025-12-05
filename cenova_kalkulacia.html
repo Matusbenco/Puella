@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-<title>Interaktívna kalkulácia Puella</title>
+<title>Cenová kalkulácia Puella</title>
 <style>
   /* --- ZÁKLADNÉ NASTAVENIA --- */
   @page { size: A4 landscape; margin: 0.8cm; }
@@ -18,6 +18,7 @@
       --gold-light: #fffbeb;
       --green-bg: #ecfdf5;
       --green-text: #047857;
+      --red-alert: #ef4444;
   }
   * { box-sizing: border-box; }
   body { 
@@ -27,6 +28,9 @@
       font-size: 13px; 
       margin: 0;
       padding: 10px;
+      padding-bottom: 40px; /* Priestor pre footer */
+      position: relative;
+      min-height: 100vh;
   }
   
   .wrap { 
@@ -55,7 +59,6 @@
   input { padding: 8px; border: 1px solid #ccc; border-radius: 4px; width: 100%; font-size: 13px; }
   input[type="number"] { text-align: center; font-weight: bold; }
   
-  /* Špeciálny štýl pre editáciu ceny */
   .inp-price {
       background: #fff;
       border: 1px solid #94a3b8;
@@ -86,13 +89,11 @@
   .right { text-align: right; }
   .center { text-align: center; }
   
-  /* Logika pre viazané produkty (Modré) */
+  /* Typy produktov */
   tr.is-master td { background: var(--blue-light); border-top: 2px solid var(--blue-border); }
   tr.is-slave td { background: var(--blue-light); border-bottom: 2px solid var(--blue-border); color: #0f172a; }
   tr.is-master td:first-child { border-left: 4px solid var(--blue-border); }
   tr.is-slave td:first-child { border-left: 4px solid var(--blue-border); padding-left: 20px; }
-
-  /* Logika pre PREMIUM 6-PACK (Zlatá) */
   tr.is-premium td { background: var(--gold-light); border-top: 2px solid var(--gold); border-bottom: 2px solid var(--gold); }
   tr.is-premium td:first-child { border-left: 4px solid var(--gold); }
   
@@ -104,72 +105,84 @@
   .tag-slave { background: #dbeafe; color: #1e40af; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; border: 1px solid #93c5fd; display: inline-block; margin-top: 2px;}
   .tag-premium { background: var(--gold); color: #fff; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: bold; display: inline-block; margin-top: 2px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
   
+  /* Promo status */
+  .promo-active { color: #047857; font-weight: bold; font-size: 11px; display: block; margin-top: 2px; }
+  .promo-inactive { color: var(--red-alert); font-weight: bold; font-size: 11px; display: block; margin-top: 2px; }
+
   /* Varianty */
   .v-wrap { display: none; margin-top: 8px; border: 1px dashed #ccc; padding: 8px; background: #fff; border-radius: 4px; }
   .v-wrap.open { display: block; }
   .v-row { display: flex; justify-content: space-between; align-items: center; margin: 4px 0; font-size: 12px; }
-  
   .v-btn { width: 28px; height: 28px; cursor: pointer; background: #fff; border: 1px solid #ccc; border-radius: 4px; font-weight: bold; color: #555; }
   .v-inp { width: 50px!important; text-align: center; margin: 0 5px; height: 28px; }
   .expand-btn { cursor: pointer; color: var(--pink); font-weight: bold; font-size: 12px; margin-left: 5px; text-decoration: underline; padding: 5px; display: inline-block;}
 
+  /* --- NOVÉ ŠTÝLY PRE EMAIL FORMULÁR --- */
+  .label { font-weight: bold; margin-bottom: 5px; display: block; color: var(--text); }
+  .note { font-size: 12px; color: #6b7280; margin-bottom: 15px; margin-top:0; }
+  .btn { 
+      padding: 10px 20px; 
+      background: #1f2937; 
+      color: #fff; 
+      border: none; 
+      border-radius: 6px; 
+      cursor: pointer; 
+      font-weight: bold;
+      font-size: 14px;
+      transition: background 0.2s;
+  }
+  .btn:hover { background: #374151; }
+  .inline { display: flex; align-items: center; gap: 10px; }
+  
+  .main-footer {
+      text-align: center;
+      font-size: 12px;
+      color: #9ca3af;
+      padding: 20px;
+      margin-top: 20px;
+      border-top: 1px solid #e5e7eb;
+      width: 100%;
+  }
+
   /* --- MOBIL --- */
   @media only screen and (max-width: 768px) {
-      body { padding: 5px; }
+      body { padding: 5px; padding-bottom: 60px; }
       .section { padding: 10px; }
       .grid { grid-template-columns: 1fr; gap: 10px; }
       input[style*="width:60%"] { width: 100% !important; margin-top: 5px; }
-
       table, thead, tbody, th, td, tr { display: block; }
       thead tr { position: absolute; top: -9999px; left: -9999px; }
-      
-      tr { 
-          margin-bottom: 15px; border: 1px solid #ddd; 
-          border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.03); 
-          background: #fff; padding-bottom: 10px;
-      }
-      /* Farby mobil */
+      tr { margin-bottom: 15px; border: 1px solid #ddd; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.03); background: #fff; padding-bottom: 10px; }
       tr.is-master { background: var(--blue-light); border: 2px solid var(--blue-border); border-bottom: none; border-radius: 8px 8px 0 0; margin-bottom: 0; }
       tr.is-slave { background: var(--blue-light); border: 2px solid var(--blue-border); border-top: none; border-radius: 0 0 8px 8px; margin-top: -2px; }
       tr.is-premium { background: var(--gold-light); border: 2px solid var(--gold); border-radius: 8px; }
       tr.is-master td:first-child, tr.is-slave td:first-child, tr.is-premium td:first-child { border-left: none; }
-
-      td { 
-          border: none; border-bottom: 1px solid #f0f0f0; 
-          position: relative; padding-left: 45%; text-align: right; 
-          padding-top: 10px; padding-bottom: 10px; min-height: 40px;
-      }
+      td { border: none; border-bottom: 1px solid #f0f0f0; position: relative; padding-left: 45%; text-align: right; padding-top: 10px; padding-bottom: 10px; min-height: 40px; }
       td:last-child { border-bottom: none; }
-      td:before { 
-          position: absolute; top: 10px; left: 10px; width: 40%; 
-          padding-right: 10px; white-space: nowrap; text-align: left; 
-          font-weight: bold; color: #666; content: attr(data-label); 
-      }
+      td:before { position: absolute; top: 10px; left: 10px; width: 40%; padding-right: 10px; white-space: nowrap; text-align: left; font-weight: bold; color: #666; content: attr(data-label); }
       td:first-child { padding-left: 10px; text-align: left; background: #f9fafb; border-bottom: 2px solid #eee; font-size: 15px; }
       td:first-child:before { content: none; }
-
       .v-wrap { position: relative; width: 100%; text-align: left; margin-top: 15px;}
-      .v-row { margin-bottom: 8px; border-bottom: 1px dashed #eee; padding-bottom: 5px; }
       tfoot tr { display: flex; flex-direction: column; align-items: flex-end; padding: 10px; border:none; box-shadow: none; background: transparent; }
       tfoot td { padding-left: 10px; text-align: right; width: 100%; display: flex; justify-content: space-between;}
       tfoot td:before { position: static; width: auto; }
-      .btn-print { width: 100%; padding: 15px; font-size: 16px; margin-top: 20px;}
+      
+      /* Úprava formulára pre mobil */
+      #orderForm { grid-template-columns: 1fr !important; gap: 15px !important; }
+      .btn { width: 100%; padding: 15px; }
+      .inline { flex-direction: column; align-items: stretch; }
   }
-
   @media print {
-    .btn-print, .expand-btn, .v-btn { display: none !important; }
+    .btn, .expand-btn, .v-btn, #orderForm, .label, .note, .card:last-of-type { display: none !important; }
     .v-wrap { display: block !important; border: none; padding: 0; }
     input { border: none; background: none; padding: 0; }
-    /* Pri tlači skryjeme orámovanie inputov */
     .inp-price { border: none !important; text-align: right; width: auto !important; padding: 0; }
-    
     tr.is-master td, tr.is-slave td { background-color: #f0f8ff !important; -webkit-print-color-adjust: exact; }
     tr.is-premium td { background-color: #fef3c7 !important; -webkit-print-color-adjust: exact; }
     table, thead, tbody, th, td, tr { display: table-row-group; }
     thead { display: table-header-group; }
     tr { display: table-row; border: none; margin: 0; box-shadow: none; }
     td { display: table-cell; padding: 6px; text-align: left; border-bottom: 1px solid #eee; }
-    td:before { content: none; }
     .right { text-align: right; }
     .center { text-align: center; }
   }
@@ -185,7 +198,7 @@
     <div class="card">
       <div class="grid">
         <div><strong>Dodávateľ:</strong> PUELLAvone s. r. o., Košice</div>
-        <div><strong>Odberateľ:</strong> <input placeholder="Doplňte údaje klienta..." style="width:60%;display:inline-block"></div>
+        <div><strong>Odberateľ:</strong> <input id="customerName" placeholder="Doplňte údaje klienta..." style="width:60%;display:inline-block"></div>
       </div>
     </div>
 
@@ -216,10 +229,31 @@
       </table>
     </div>
 
-    <div style="text-align:right">
-      <button class="btn-print" style="padding:12px 25px;background:#1f2937;color:#fff;border:0;border-radius:6px;cursor:pointer;font-weight:bold" onclick="window.print()">Vytlačiť / PDF</button>
+    <div class="card">
+      <div class="label" style="font-size:16px; margin-bottom:8px;">Odoslanie objednávky e-mailom</div>
+      <p class="note">Formulár odošle súhrn vyplnených položiek (vrátane poznámok) na zadaný e-mail.</p>
+      
+      <form id="orderForm" action="https://formspree.io/f/myzdbgol" method="POST" onsubmit="prepareOrder()" style="display:grid;gap:10px;grid-template-columns:1fr 240px;align-items:end">
+        <div>
+          <label class="label" for="orderEmail" style="text-transform:none;color:var(--text)">E-mail na potvrdenie</label>
+          <input id="orderEmail" name="email" type="email" placeholder="vas@email.sk" style="width:100%" required>
+        </div>
+        <button type="submit" class="btn">Odoslať objednávku e-mailom</button>
+
+        <textarea name="message" id="orderMessage" hidden></textarea>
+        <input type="hidden" name="_subject" id="orderSubject" value="Nová Objednávka (Puella Kalkulácia)">
+        </form>
+      
+      <div class="inline" style="justify-content:flex-end;margin-top:15px;border-top:1px dashed #eee;padding-top:10px">
+        <button type="button" class="btn" style="background:#4b5563" onclick="window.print()">🖨️ Tlačiť / Uložiť PDF</button>
+      </div>
     </div>
+
   </div>
+  
+  <footer class="main-footer">
+      Vytvoril: Matúš Benčo | +421 918 830 701
+  </footer>
 </div>
 
 <script>
@@ -232,12 +266,14 @@ const data = [
   {
     id: 'p500', 
     name: 'Puella parfum 500 ml', 
-    nc: 14.90, 
+    nc: 14.90, // Základná cena
+    nc_discount: 13.09, // Zľavnená cena
     moc: 25.90, 
     vars: true,
     type: 'master', 
     slave: 'gel1000',
-    badge: 'Podmienka: Nákup s gélom'
+    badge: 'Podmienka: Nákup s gélom',
+    promoInfo: 'Akcia: Balenie 11ks = 13,09 €/ks'
   },
   {
     id: 'gel1000', 
@@ -333,7 +369,6 @@ function render(){
     const tr = document.createElement('tr');
     tr.className = trClass;
 
-    // Názov
     let nameHtml = `<strong>${p.name}</strong>`;
     if(p.type === 'slave') nameHtml = `<span class="link-icon">↳</span> ${p.name}`;
     
@@ -345,9 +380,11 @@ function render(){
         if(p.type === 'premium') bClass = 'tag-premium';
         badgeHtml = `<br><span class="${bClass}">${p.badge}</span>`;
     }
+    if(p.promoInfo) {
+         badgeHtml += `<br><span class="badge" style="background:#fee2e2;color:#b91c1c;border:1px solid #fca5a5;margin-top:2px">${p.promoInfo}</span>`;
+    }
     if(p.note) badgeHtml += ` <span class="badge">${p.note}</span>`;
 
-    // Inputy pre Počet
     const totalQty = getQty(p.id);
     let inputHtml = '';
     
@@ -360,6 +397,7 @@ function render(){
           <span id="qty-total-${p.id}" style="font-weight:bold;font-size:14px">${totalQty} ${unitText}</span>
           <span class="expand-btn" onclick="toggle('${p.id}')">${btnText}</span>
           <div id="status-${p.id}"></div>
+          <div id="promo-status-${p.id}"></div>
         </div>
         <div id="wrp-${p.id}" class="v-wrap">
           ${renderVars(p)}
@@ -370,16 +408,16 @@ function render(){
       inputHtml = `<input id="inp-simple-${p.id}" type="number" value="${totalQty}" min="0" onchange="updSimple('${p.id}',this.value)" ${readonly}>`;
     }
 
-    // Input pre MOC (Cenu) - ZMENA TU
     const mocInput = `<input type="number" step="0.01" class="inp-price" value="${p.moc}" onchange="updMoc('${p.id}', this.value)"> €`;
+    const priceDisplay = `<span id="price-unit-${p.id}">${fmt(p.nc)}</span>`;
 
     tr.innerHTML = `
       <td data-label="Produkt">${nameHtml}${badgeHtml}</td>
       <td class="right" data-label="MOC s DPH">${mocInput}</td>
       <td class="right" data-label="Marža" id="margin-${p.id}" style="color:#059669;font-weight:bold">-</td>
-      <td data-label="Poznámka"><input type="text" placeholder="Pozn." style="border:none;border-bottom:1px dashed #ccc; width:100%"></td>
+      <td data-label="Poznámka"><input id="note-${p.id}" type="text" placeholder="Pozn." style="border:none;border-bottom:1px dashed #ccc; width:100%"></td>
       <td data-label="Počet">${inputHtml}</td>
-      <td class="right" data-label="Cena bez DPH">${fmt(p.nc)}</td>
+      <td class="right" data-label="Cena bez DPH">${priceDisplay} / ${p.type==='premium'?'bal':'ks'}</td>
       <td class="right" id="sum-${p.id}" data-label="Spolu bez DPH" style="font-weight:600">${fmt(0)}</td>
     `;
     tb.appendChild(tr);
@@ -440,19 +478,12 @@ function updSimple(id, val){
   recalc();
 }
 
-// Funkcia na aktualizáciu MOC
 function updMoc(id, val) {
-    // Nahradenie čiarky bodkou pre istotu
     let cleanVal = val.replace(',', '.');
     let n = parseFloat(cleanVal);
     if(isNaN(n)) n = 0;
-    
-    // Nájdeme produkt v dátach a prepíšeme MOC
     const p = data.find(x => x.id === id);
-    if(p) {
-        p.moc = n;
-        recalc(); // Spustíme prepočet
-    }
+    if(p) { p.moc = n; recalc(); }
 }
 
 function recalc(){
@@ -461,40 +492,66 @@ function recalc(){
   
   data.forEach(p => {
     const qty = getQty(p.id);
-    const rowNC = qty * p.nc;
     
+    // --- Logika ceny pre Puella 500ml (Násobky 11) ---
+    let currentNC = p.nc;
+    if(p.id === 'p500') {
+        const remainder = qty % 11;
+        const isBulk = (qty > 0 && remainder === 0);
+        currentNC = isBulk ? p.nc_discount : p.nc;
+        
+        const priceUnitEl = document.getElementById(`price-unit-${p.id}`);
+        if(priceUnitEl) {
+            priceUnitEl.innerHTML = fmt(currentNC);
+            if(isBulk) {
+               priceUnitEl.style.color = '#047857'; // Zelená
+               priceUnitEl.style.fontWeight = 'bold';
+            } else {
+               priceUnitEl.style.color = 'inherit';
+            }
+        }
+
+        const promoEl = document.getElementById(`promo-status-${p.id}`);
+        if(promoEl) {
+            if (qty === 0) {
+                promoEl.innerHTML = '';
+            } else if (isBulk) {
+                promoEl.innerHTML = `<span class="promo-active">✓ ZĽAVA 11+ AKTÍVNA</span>`;
+            } else {
+                const missing = 11 - remainder;
+                const nextTarget = qty + missing;
+                promoEl.innerHTML = `<span class="promo-inactive">Pre zľavu objednajte ${nextTarget} ks (chýba ${missing})</span>`;
+            }
+        }
+    }
+    
+    const rowNC = qty * currentNC;
     document.getElementById(`sum-${p.id}`).innerText = fmt(rowNC);
     if(p.vars) {
         let unitText = p.type === 'premium' ? 'bal.' : 'ks';
         document.getElementById(`qty-total-${p.id}`).innerText = qty + ' ' + unitText;
     }
 
-    // Výpočet marže a zisku (teraz používa aktuálnu p.moc)
     let marginText = '-';
     let rowProfit = 0;
-
     if(p.moc > 0) {
-      const nakupSDPH = p.nc * 1.23;
+      const nakupSDPH = currentNC * 1.23;
       const ziskKus = p.moc - nakupSDPH;
       rowProfit = ziskKus * qty;
       totalProfit += rowProfit;
 
-      // Marža %
-      if (p.nc > 0) {
+      if (currentNC > 0) {
           let m = (ziskKus / p.moc) * 100;
           marginText = pct(m);
       }
     }
     
-    // Aktualizácia stĺpca Marža v tabuľke
     const marginEl = document.getElementById(`margin-${p.id}`);
     if(marginEl) {
         marginEl.innerText = marginText;
-        // Farba marže (červená ak je záporná, zelená ak kladná)
         marginEl.style.color = (marginText !== '-' && parseFloat(marginText) < 0) ? '#dc2626' : '#059669';
     }
 
-    // MASTER -> SLAVE Sync
     if(p.type === 'master'){
       const sId = p.slave;
       const sP = data.find(x=>x.id===sId);
@@ -508,13 +565,8 @@ function recalc(){
       }
     }
     if(p.type === 'slave' && p.vars) updateSlaveStatus(p);
-  });
 
-  // Finálne sumy Nákupu
-  totalNC = 0;
-  data.forEach(p => {
-      const qty = getQty(p.id);
-      totalNC += qty * p.nc;
+    totalNC += rowNC;
   });
 
   const vat = totalNC * 0.23;
@@ -522,7 +574,6 @@ function recalc(){
   document.getElementById('sum_vat').innerText = fmt(vat);
   document.getElementById('sum_w').innerText = fmt(totalNC + vat);
   
-  // Zobrazenie Zisku
   const profitEl = document.getElementById('profit');
   profitEl.innerText = fmt(totalProfit);
   profitEl.style.color = totalProfit >= 0 ? '#047857' : '#dc2626';
@@ -540,6 +591,64 @@ function updateSlaveStatus(p) {
         else if (totalQty > 0) statusEl.innerHTML = `<div style="color:#16a34a;font-weight:bold;font-size:11px;margin-top:2px">✓ KOMPLETNÉ</div>`;
         else statusEl.innerHTML = '';
     }
+}
+
+// Funkcia na prípravu e-mailu pred odoslaním
+function prepareOrder() {
+    let customer = document.getElementById('customerName').value || 'Neuvedené';
+    let emailText = "OBJEDNÁVKA PUELLA\n";
+    emailText += "----------------------------\n";
+    emailText += "Odberateľ: " + customer + "\n";
+    emailText += "Dátum: " + new Date().toLocaleDateString('sk-SK') + "\n\n";
+    emailText += "POLOŽKY:\n";
+    
+    let totalSum = 0;
+    
+    data.forEach(p => {
+        let qty = getQty(p.id);
+        if (qty > 0) {
+            let note = document.getElementById(`note-${p.id}`).value;
+            // Zistenie aktuálnej ceny (kvôli zľave 11ks)
+            let currentNC = p.nc;
+            if(p.id === 'p500') {
+                 if(qty > 0 && (qty % 11 === 0)) currentNC = p.nc_discount;
+            }
+            let rowPrice = qty * currentNC;
+            totalSum += rowPrice;
+            
+            let unitLabel = p.type==='premium'?'bal':'ks';
+            emailText += `\n• ${p.name} (${qty} ${unitLabel})`;
+            
+            // Výpis variantov ak sú
+            if (p.vars) {
+                 let variantsStr = [];
+                 const vList = p.customVars || stdVars;
+                 vList.forEach(v => {
+                     let vQty = state[p.id][v];
+                     if(vQty > 0) variantsStr.push(`${v}: ${vQty}`);
+                 });
+                 if(variantsStr.length > 0) emailText += `\n   Variatny: [ ${variantsStr.join(', ')} ]`;
+            }
+            
+            emailText += `\n   Cena/j: ${fmt(currentNC)} | Spolu: ${fmt(rowPrice)}`;
+            if(note) emailText += `\n   Poznámka: ${note}`;
+            emailText += "\n";
+        }
+    });
+    
+    let vat = totalSum * 0.23;
+    let totalWithVat = totalSum + vat;
+    let profitTxt = document.getElementById('profit').innerText;
+
+    emailText += "\n----------------------------\n";
+    emailText += "SÚHRN:\n";
+    emailText += "Spolu bez DPH: " + fmt(totalSum) + "\n";
+    emailText += "DPH 23%: " + fmt(vat) + "\n";
+    emailText += "SPOLU S DPH: " + fmt(totalWithVat) + "\n";
+    emailText += "Potenciálny zisk: " + profitTxt + "\n";
+    
+    // Vloženie do skrytého poľa
+    document.getElementById('orderMessage').value = emailText;
 }
 
 render();
