@@ -28,7 +28,7 @@
       font-size: 13px; 
       margin: 0;
       padding: 10px;
-      padding-bottom: 40px; /* Priestor pre footer */
+      padding-bottom: 40px; 
       position: relative;
       min-height: 100vh;
   }
@@ -222,7 +222,7 @@
           <tr><td colspan="6" class="right" data-label="Celkom"><strong style="color:var(--pink);font-size:14px">Spolu s DPH</strong></td><td class="right" id="sum_w" style="font-weight:bold;font-size:15px">0,00 €</td></tr>
           <tr>
             <td colspan="7" class="center" style="background:var(--green-bg);color:var(--green-text);padding:10px;border-top:1px solid #10b981">
-              <strong>Potenciálny zisk z predaja (po odpočítaní nákladov): <span id="profit">0,00 €</span></strong>
+              <strong>Potenciálny zisk z predaja (bez DPH): <span id="profit">0,00 €</span></strong>
             </td>
           </tr>
         </tfoot>
@@ -242,11 +242,7 @@
 
         <textarea name="message" id="orderMessage" hidden></textarea>
         <input type="hidden" name="_subject" id="orderSubject" value="Nová Objednávka (Puella Kalkulácia)">
-        </form>
-      
-      <div class="inline" style="justify-content:flex-end;margin-top:15px;border-top:1px dashed #eee;padding-top:10px">
-        <button type="button" class="btn" style="background:#4b5563" onclick="window.print()">🖨️ Tlačiť / Uložiť PDF</button>
-      </div>
+      </form>
     </div>
 
   </div>
@@ -535,13 +531,15 @@ function recalc(){
     let marginText = '-';
     let rowProfit = 0;
     if(p.moc > 0) {
-      const nakupSDPH = currentNC * 1.23;
-      const ziskKus = p.moc - nakupSDPH;
+      // OPRAVA ZISKU: (MOC s DPH / 1.23) - Nákup bez DPH
+      const mocBezDPH = p.moc / 1.23;
+      const ziskKus = mocBezDPH - currentNC;
       rowProfit = ziskKus * qty;
       totalProfit += rowProfit;
 
-      if (currentNC > 0) {
-          let m = (ziskKus / p.moc) * 100;
+      // Marža počítaná zo základu dane (Netto)
+      if (mocBezDPH > 0) {
+          let m = (ziskKus / mocBezDPH) * 100;
           marginText = pct(m);
       }
     }
@@ -619,7 +617,6 @@ function prepareOrder() {
             let unitLabel = p.type==='premium'?'bal':'ks';
             emailText += `\n• ${p.name} (${qty} ${unitLabel})`;
             
-            // Výpis variantov ak sú
             if (p.vars) {
                  let variantsStr = [];
                  const vList = p.customVars || stdVars;
@@ -645,9 +642,8 @@ function prepareOrder() {
     emailText += "Spolu bez DPH: " + fmt(totalSum) + "\n";
     emailText += "DPH 23%: " + fmt(vat) + "\n";
     emailText += "SPOLU S DPH: " + fmt(totalWithVat) + "\n";
-    emailText += "Potenciálny zisk: " + profitTxt + "\n";
+    emailText += "Potenciálny zisk (bez DPH): " + profitTxt + "\n";
     
-    // Vloženie do skrytého poľa
     document.getElementById('orderMessage').value = emailText;
 }
 
