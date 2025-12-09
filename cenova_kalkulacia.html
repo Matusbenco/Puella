@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
-<title>Cenová kalkulácia Puella</title>
+<title>Cenová kalkulácia Puella (Editovateľná NC)</title>
 <style>
   /* --- ZÁKLADNÉ NASTAVENIA --- */
   @page { size: A4 landscape; margin: 0.8cm; }
@@ -59,10 +59,11 @@
   input { padding: 8px; border: 1px solid #ccc; border-radius: 4px; width: 100%; font-size: 13px; }
   input[type="number"] { text-align: center; font-weight: bold; }
   
+  /* Štýl pre cenové inputy (MOC aj NC) */
   .inp-price {
       background: #fff;
       border: 1px solid #94a3b8;
-      color: var(--pink);
+      color: var(--text);
       width: 80px !important;
       text-align: right;
       padding-right: 5px;
@@ -71,6 +72,12 @@
       border-color: var(--pink);
       outline: none;
       box-shadow: 0 0 0 2px rgba(231,49,140,0.2);
+  }
+  
+  /* Špecifická farba pre NC input */
+  .inp-nc {
+      color: #0f172a;
+      border-color: #cbd5e1;
   }
 
   /* --- TABUĽKA --- */
@@ -176,7 +183,10 @@
     .btn, .expand-btn, .v-btn, #orderForm, .label, .note, .card:last-of-type { display: none !important; }
     .v-wrap { display: block !important; border: none; padding: 0; }
     input { border: none; background: none; padding: 0; }
-    .inp-price { border: none !important; text-align: right; width: auto !important; padding: 0; }
+    .inp-price, .inp-nc { border: none !important; text-align: right; width: auto !important; padding: 0; }
+    /* Pre tlač skryť šípky na inputoch ak prehliadač ich ukazuje */
+    input[type=number]::-webkit-inner-spin-button, 
+    input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
     tr.is-master td, tr.is-slave td { background-color: #f0f8ff !important; -webkit-print-color-adjust: exact; }
     tr.is-premium td { background-color: #fef3c7 !important; -webkit-print-color-adjust: exact; }
     table, thead, tbody, th, td, tr { display: table-row-group; }
@@ -206,12 +216,12 @@
       <table id="tbl">
         <thead>
           <tr>
-            <th style="width:30%">Produkt</th>
+            <th style="width:28%">Produkt</th>
             <th class="right" style="width:12%">MOC s DPH<br>(Editovateľné)</th>
             <th class="right" style="width:10%">Marža<br>(%)</th>
             <th style="width:10%">Poznámka</th>
             <th class="center" style="width:15%">Počet</th>
-            <th class="right" style="width:12%">Vaša Cena<br>bez DPH / ks</th>
+            <th class="right" style="width:14%">Vaša Cena<br>bez DPH / ks (Edit)</th>
             <th class="right" style="width:13%">Spolu nákup<br>bez DPH</th>
           </tr>
         </thead>
@@ -262,8 +272,8 @@ const data = [
   {
     id: 'p500', 
     name: 'Puella parfum 500 ml', 
-    nc: 14.90, // Základná cena
-    nc_discount: 13.09, // Zľavnená cena
+    nc: 14.90, // Základná nákupná cena
+    nc_discount: 13.09, // Zľavnená nákupná cena
     moc: 25.90, 
     vars: true,
     type: 'master', 
@@ -405,7 +415,10 @@ function render(){
     }
 
     const mocInput = `<input type="number" step="0.01" class="inp-price" value="${p.moc}" onchange="updMoc('${p.id}', this.value)"> €`;
-    const priceDisplay = `<span id="price-unit-${p.id}">${fmt(p.nc)}</span>`;
+    
+    // --- ZMENA: Vykreslenie inputu pre Nákupnú cenu namiesto textu ---
+    // Pôvodne sa tu volil nc alebo nc_discount, teraz inicializujeme defaultne nc. Logika recalc() to updatne.
+    const priceInput = `<input id="inp-nc-${p.id}" type="number" step="0.01" class="inp-price inp-nc" value="${p.nc}" onchange="updNc('${p.id}', this.value)"> €`;
 
     tr.innerHTML = `
       <td data-label="Produkt">${nameHtml}${badgeHtml}</td>
@@ -413,7 +426,7 @@ function render(){
       <td class="right" data-label="Marža" id="margin-${p.id}" style="color:#059669;font-weight:bold">-</td>
       <td data-label="Poznámka"><input id="note-${p.id}" type="text" placeholder="Pozn." style="border:none;border-bottom:1px dashed #ccc; width:100%"></td>
       <td data-label="Počet">${inputHtml}</td>
-      <td class="right" data-label="Cena bez DPH">${priceDisplay} / ${p.type==='premium'?'bal':'ks'}</td>
+      <td class="right" data-label="Cena bez DPH">${priceInput} / ${p.type==='premium'?'bal':'ks'}</td>
       <td class="right" id="sum-${p.id}" data-label="Spolu bez DPH" style="font-weight:600">${fmt(0)}</td>
     `;
     tb.appendChild(tr);
@@ -482,6 +495,25 @@ function updMoc(id, val) {
     if(p) { p.moc = n; recalc(); }
 }
 
+// --- NOVÁ FUNKCIA NA ÚPRAVU NÁKUPNEJ CENY ---
+function updNc(id, val) {
+    let cleanVal = val.replace(',', '.');
+    let n = parseFloat(cleanVal);
+    if(isNaN(n)) return; // Neaktualizujeme ak to nie je číslo
+    
+    const p = data.find(x => x.id === id);
+    if(p) { 
+        // Ak sme v režime zľavy pre p500, aktualizujeme zľavnenú cenu, inak základnú
+        const qty = getQty(p.id);
+        if (p.id === 'p500' && qty > 0 && qty % 11 === 0) {
+            p.nc_discount = n;
+        } else {
+            p.nc = n; 
+        }
+        recalc(); 
+    }
+}
+
 function recalc(){
   let totalNC = 0;
   let totalProfit = 0;
@@ -491,22 +523,15 @@ function recalc(){
     
     // --- Logika ceny pre Puella 500ml (Násobky 11) ---
     let currentNC = p.nc;
+    let isBulk = false;
+
     if(p.id === 'p500') {
         const remainder = qty % 11;
-        const isBulk = (qty > 0 && remainder === 0);
+        isBulk = (qty > 0 && remainder === 0);
+        // Ak je bulk, berieme nc_discount, inak nc
         currentNC = isBulk ? p.nc_discount : p.nc;
         
-        const priceUnitEl = document.getElementById(`price-unit-${p.id}`);
-        if(priceUnitEl) {
-            priceUnitEl.innerHTML = fmt(currentNC);
-            if(isBulk) {
-               priceUnitEl.style.color = '#047857'; // Zelená
-               priceUnitEl.style.fontWeight = 'bold';
-            } else {
-               priceUnitEl.style.color = 'inherit';
-            }
-        }
-
+        // Aktualizácia promo textov
         const promoEl = document.getElementById(`promo-status-${p.id}`);
         if(promoEl) {
             if (qty === 0) {
@@ -520,6 +545,24 @@ function recalc(){
             }
         }
     }
+
+    // --- ZMENA: Aktualizácia hodnoty inputu namiesto textu ---
+    const ncInput = document.getElementById(`inp-nc-${p.id}`);
+    if(ncInput) {
+        // Nastavíme hodnotu inputu na aktuálne platnú nákupnú cenu
+        // Ale len ak sa líši, aby sme neprerušili písanie užívateľa (aj keď pri onchange sa to refreshne celé)
+        // Pri p500 sa hodnota môže meniť automaticky, tak ju musíme prepísať
+        ncInput.value = currentNC.toFixed(2);
+        
+        // Vizuálna indikácia zľavy (zelená farba textu v inpute)
+        if(isBulk) {
+           ncInput.style.color = '#047857';
+           ncInput.style.fontWeight = 'bold';
+        } else {
+           ncInput.style.color = '#0f172a'; // Default farba
+           ncInput.style.fontWeight = 'normal';
+        }
+    }
     
     const rowNC = qty * currentNC;
     document.getElementById(`sum-${p.id}`).innerText = fmt(rowNC);
@@ -531,13 +574,13 @@ function recalc(){
     let marginText = '-';
     let rowProfit = 0;
     if(p.moc > 0) {
-      // OPRAVA ZISKU: (MOC s DPH / 1.23) - Nákup bez DPH
+      // ZISK: (MOC s DPH / 1.23) - Nákup bez DPH (currentNC)
       const mocBezDPH = p.moc / 1.23;
       const ziskKus = mocBezDPH - currentNC;
       rowProfit = ziskKus * qty;
       totalProfit += rowProfit;
 
-      // Marža počítaná zo základu dane (Netto)
+      // Marža
       if (mocBezDPH > 0) {
           let m = (ziskKus / mocBezDPH) * 100;
           marginText = pct(m);
@@ -557,6 +600,7 @@ function recalc(){
         state[sId]['_val'] = qty;
         const el = document.getElementById(`inp-simple-${sId}`);
         if(el) el.value = qty;
+        // Aj tu musíme prepočítať sumu slave produktu
         document.getElementById(`sum-${sId}`).innerText = fmt(qty * sP.nc);
       } else {
           updateSlaveStatus(sP);
